@@ -137,6 +137,7 @@ add_library(bitprim-database ${MODE}
   src/databases/spend_database.cpp
   src/databases/stealth_database.cpp
   src/databases/transaction_database.cpp
+  src/databases/unspend_database.cpp
   src/memory/accessor.cpp
   src/memory/allocator.cpp
   src/memory/memory_map.cpp
@@ -183,7 +184,8 @@ if (WITH_TESTS)
     test/main.cpp
     test/spend_database.cpp
     test/structure.cpp
-    test/transaction_database.cpp)
+    test/transaction_database.cpp
+    test/unspend_database.cpp)
   if (ENABLE_SHARED)
     target_compile_definitions(bitprim_database_test PRIVATE -DBOOST_TEST_DYN_LINK)
   endif()
@@ -354,11 +356,14 @@ set(_bitprim_headers
   bitcoin/database/databases/spend_database.hpp
   bitcoin/database/databases/stealth_database.hpp
   bitcoin/database/databases/transaction_database.hpp
+  bitcoin/database/databases/unspend_database.hpp
   # include_bitcoin_database_impl_HEADERS =
   bitcoin/database/impl/hash_table_header.ipp
   bitcoin/database/impl/record_hash_table.ipp
+  bitcoin/database/impl/record_hash_table_set.ipp
   bitcoin/database/impl/record_multimap.ipp
   bitcoin/database/impl/record_row.ipp
+  bitcoin/database/impl/record_row_set.ipp
   bitcoin/database/impl/remainder.ipp
   bitcoin/database/impl/slab_hash_table.ipp
   bitcoin/database/impl/slab_row.ipp
@@ -370,6 +375,7 @@ set(_bitprim_headers
   # include_bitcoin_database_primitives_HEADERS =
   bitcoin/database/primitives/hash_table_header.hpp
   bitcoin/database/primitives/record_hash_table.hpp
+  bitcoin/database/primitives/record_hash_table_set.hpp
   bitcoin/database/primitives/record_list.hpp
   bitcoin/database/primitives/record_manager.hpp
   bitcoin/database/primitives/record_multimap.hpp
