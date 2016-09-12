@@ -27,28 +27,28 @@ using namespace bc;
 using namespace bc::chain;
 using namespace bc::database;
 
-#define DIRECTORY "unspend_database"
+#define DIRECTORY "unspent_database"
 
-class unspend_database_directory_setup_fixture
+class unspent_database_directory_setup_fixture
 {
 public:
-    unspend_database_directory_setup_fixture()
+    unspent_database_directory_setup_fixture()
     {
         error_code ec;
         remove_all(DIRECTORY, ec);
         BOOST_REQUIRE(create_directories(DIRECTORY, ec));
     }
 
-    ////~unspend_database_directory_setup_fixture()
+    ////~unspent_database_directory_setup_fixture()
     ////{
     ////    error_code ec;
     ////    remove_all(DIRECTORY, ec);
     ////}
 };
 
-BOOST_FIXTURE_TEST_SUITE(database_tests, unspend_database_directory_setup_fixture)
+BOOST_FIXTURE_TEST_SUITE(database_tests, unspent_database_directory_setup_fixture)
 
-BOOST_AUTO_TEST_CASE(unspend_database__test)
+BOOST_AUTO_TEST_CASE(unspent_database__test)
 {
     chain::output_point key1{ hash_literal("4129e76f363f9742bc98dd3d40c99c9066e4d53b8e10e5097bd6f7b5059d7c53"), 110 };
     chain::output_point key2{ hash_literal("eefa5d23968584be9d8d064bcf99c24666e4d53b8e10e5097bd6f7b5059d7c53"), 4 };
@@ -60,8 +60,8 @@ BOOST_AUTO_TEST_CASE(unspend_database__test)
     chain::input_point value3{ hash_literal("3cc768bbaef30587c72c6eba8dbf6aeec4ef24172ae6fe357f2e24c2b0fa44d5"), 3 };
     chain::input_point value4{ hash_literal("4742b3eac32d35961f9da9d42d495ff13cc768bbaef30587c72c6eba8dbf6aee"), 4 };
 
-    data_base::touch_file(DIRECTORY "/unspend");
-    unspend_database db(DIRECTORY "/unspend");
+    data_base::touch_file(DIRECTORY "/unspent");
+    unspent_database db(DIRECTORY "/unspent");
     BOOST_REQUIRE(db.create());
 
     db.store(key1, value1);
@@ -69,20 +69,20 @@ BOOST_AUTO_TEST_CASE(unspend_database__test)
     db.store(key3, value3);
 
     // Test fetch.
-    const auto unspend1 = db.get(key1);
-    BOOST_REQUIRE(unspend1.valid);
-    BOOST_REQUIRE(unspend1.hash == value1.hash);
-    BOOST_REQUIRE_EQUAL(unspend1.index, value1.index);
+    const auto unspent1 = db.get(key1);
+    BOOST_REQUIRE(unspent1.valid);
+    BOOST_REQUIRE(unspent1.hash == value1.hash);
+    BOOST_REQUIRE_EQUAL(unspent1.index, value1.index);
 
-    const auto unspend2 = db.get(key2);
-    BOOST_REQUIRE(unspend2.valid);
-    BOOST_REQUIRE(unspend2.hash == value2.hash);
-    BOOST_REQUIRE_EQUAL(unspend2.index, value2.index);
+    const auto unspent2 = db.get(key2);
+    BOOST_REQUIRE(unspent2.valid);
+    BOOST_REQUIRE(unspent2.hash == value2.hash);
+    BOOST_REQUIRE_EQUAL(unspent2.index, value2.index);
 
-    const auto unspend3 = db.get(key3);
-    BOOST_REQUIRE(unspend3.valid);
-    BOOST_REQUIRE(unspend3.hash == value3.hash);
-    BOOST_REQUIRE_EQUAL(unspend3.index, value3.index);
+    const auto unspent3 = db.get(key3);
+    BOOST_REQUIRE(unspent3.valid);
+    BOOST_REQUIRE(unspent3.hash == value3.hash);
+    BOOST_REQUIRE_EQUAL(unspent3.index, value3.index);
 
     // Record shouldnt exist yet.
     BOOST_REQUIRE(!db.get(key4).valid);
@@ -95,10 +95,10 @@ BOOST_AUTO_TEST_CASE(unspend_database__test)
     db.store(key4, value4);
 
     // Fetch it.
-    const auto unspend4 = db.get(key4);
-    BOOST_REQUIRE(unspend4.valid);
-    BOOST_REQUIRE(unspend4.hash == value4.hash);
-    BOOST_REQUIRE_EQUAL(unspend4.index, value4.index);
+    const auto unspent4 = db.get(key4);
+    BOOST_REQUIRE(unspent4.valid);
+    BOOST_REQUIRE(unspent4.hash == value4.hash);
+    BOOST_REQUIRE_EQUAL(unspent4.index, value4.index);
     db.sync();
 }
 

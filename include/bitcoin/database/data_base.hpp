@@ -31,7 +31,7 @@
 #include <bitcoin/database/databases/transaction_database.hpp>
 #include <bitcoin/database/databases/history_database.hpp>
 #include <bitcoin/database/databases/stealth_database.hpp>
-#include <bitcoin/database/databases/unspend_database.hpp>
+#include <bitcoin/database/databases/unspent_database.hpp>
 #include <bitcoin/database/define.hpp>
 #include <bitcoin/database/settings.hpp>
 
@@ -58,7 +58,7 @@ public:
         path history_rows;
         path stealth_rows;
         path spends_lookup;
-        path unspends_lookup;
+        path unspents_lookup;
         path transactions_lookup;
     };
 
@@ -151,7 +151,7 @@ public:
     block_database blocks;
     history_database history;
     spend_database spends;
-    unspend_database unspends;
+    unspent_database unspents;
     stealth_database stealth;
     transaction_database transactions;
 };

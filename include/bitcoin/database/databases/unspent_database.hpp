@@ -18,8 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBBITCOIN_DATABASE_UNSPEND_DATABASE_HPP
-#define LIBBITCOIN_DATABASE_UNSPEND_DATABASE_HPP
+#ifndef LIBBITCOIN_DATABASE_UNSPENT_DATABASE_HPP
+#define LIBBITCOIN_DATABASE_UNSPENT_DATABASE_HPP
 
 #include <cstddef>
 #include <memory>
@@ -32,7 +32,7 @@
 namespace libbitcoin {
 namespace database {
 
-struct BCD_API unspend_statinfo
+struct BCD_API unspent_statinfo
 {
     /// Number of buckets used in the hashtable.
     /// load factor = rows / buckets
@@ -44,15 +44,15 @@ struct BCD_API unspend_statinfo
 
 /// This enables you to lookup the spend of an output point, returning
 /// the input point. It is a simple map.
-class BCD_API unspend_database
+class BCD_API unspent_database
 {
 public:
     /// Construct the database.
-    unspend_database(boost::filesystem::path const& filename,
+    unspent_database(boost::filesystem::path const& filename,
         std::shared_ptr<shared_mutex> mutex=nullptr);
 
     /// Close the database (all threads must first be stopped).
-    ~unspend_database();
+    ~unspent_database();
 
     /// Initialize a new spend database.
     bool create();
@@ -80,7 +80,7 @@ public:
     void sync();
 
     /// Return statistical info about the database.
-    unspend_statinfo statinfo() const;
+    unspent_statinfo statinfo() const;
 
 private:
     typedef record_hash_table_set<chain::point> record_map;
@@ -95,4 +95,4 @@ private:
 } // namespace database
 } // namespace libbitcoin
 
-#endif /*LIBBITCOIN_DATABASE_UNSPEND_DATABASE_HPP*/
+#endif /*LIBBITCOIN_DATABASE_UNSPENT_DATABASE_HPP*/

@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/database/databases/unspend_database.hpp>
+#include <bitcoin/database/databases/unspent_database.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -41,7 +41,7 @@ BC_CONSTEXPR size_t initial_map_file_size = header_size + minimum_records_size;
 // BC_CONSTEXPR size_t record_size = hash_table_record_size<chain::point>(value_size);
 BC_CONSTEXPR size_t record_size = hash_table_set_record_size<chain::point>();
 
-unspend_database::unspend_database(path const& filename,
+unspent_database::unspent_database(path const& filename,
     std::shared_ptr<shared_mutex> mutex)
   : lookup_file_(filename, mutex), 
     lookup_header_(lookup_file_, number_buckets),
@@ -51,7 +51,7 @@ unspend_database::unspend_database(path const& filename,
 }
 
 // Close does not call stop because there is no way to detect thread join.
-unspend_database::~unspend_database()
+unspent_database::~unspent_database()
 {
     close();
 }
@@ -60,7 +60,7 @@ unspend_database::~unspend_database()
 // ----------------------------------------------------------------------------
 
 // Initialize files and start.
-bool unspend_database::create()
+bool unspent_database::create()
 {
     // Resize and create require a started file.
     if (!lookup_file_.start())
@@ -82,7 +82,7 @@ bool unspend_database::create()
 // Startup and shutdown.
 // ----------------------------------------------------------------------------
 
-bool unspend_database::start()
+bool unspent_database::start()
 {
     return
         lookup_file_.start() &&
@@ -90,40 +90,40 @@ bool unspend_database::start()
         lookup_manager_.start();
 }
 
-bool unspend_database::stop()
+bool unspent_database::stop()
 {
     return lookup_file_.stop();
 }
 
-bool unspend_database::close()
+bool unspent_database::close()
 {
     return lookup_file_.close();
 }
 
 // ----------------------------------------------------------------------------
 
-bool unspend_database::contains(output_point const& outpoint) const
+bool unspent_database::contains(output_point const& outpoint) const
 {
     return lookup_map_.contains(outpoint);
 }
 
-void unspend_database::store(chain::output_point const& outpoint)
+void unspent_database::store(chain::output_point const& outpoint)
 {
     lookup_map_.store(outpoint);
 }
 
-void unspend_database::remove(output_point const& outpoint)
+void unspent_database::remove(output_point const& outpoint)
 {
     DEBUG_ONLY(bool success =) lookup_map_.unlink(outpoint);
     BITCOIN_ASSERT(success);
 }
 
-void unspend_database::sync()
+void unspent_database::sync()
 {
     lookup_manager_.sync();
 }
 
-unspend_statinfo unspend_database::statinfo() const
+unspent_statinfo unspent_database::statinfo() const
 {
     return
     {

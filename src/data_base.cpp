@@ -76,7 +76,7 @@ data_base::store::store(const path& prefix)
     blocks_lookup = prefix / "block_table";
     history_lookup = prefix / "history_table";
     spends_lookup = prefix / "spend_table";
-    unspends_lookup = prefix / "unspend_table";
+    unspents_lookup = prefix / "unspent_table";
     transactions_lookup = prefix / "transaction_table";
 
     // Height-based (reverse) lookup.
@@ -100,7 +100,7 @@ bool data_base::store::touch_all() const
         touch_file(history_rows) &&
         touch_file(stealth_rows) &&
         touch_file(spends_lookup) &&
-        touch_file(unspends_lookup) &&
+        touch_file(unspents_lookup) &&
         touch_file(transactions_lookup);
 }
 
@@ -147,7 +147,7 @@ data_base::data_base(const store& paths, size_t history_height,
     history(paths.history_lookup, paths.history_rows, mutex_),
     stealth(paths.stealth_rows, mutex_),
     spends(paths.spends_lookup, mutex_),
-    unspends(paths.unspends_lookup, mutex_),
+    unspents(paths.unspents_lookup, mutex_),
     transactions(paths.transactions_lookup, mutex_)
 {
 }
@@ -172,7 +172,7 @@ bool data_base::create()
         blocks.create() &&
         history.create() &&
         spends.create() &&
-        unspends.create() &&
+        unspents.create() &&
         stealth.create() &&
         transactions.create();
 }
@@ -200,7 +200,7 @@ bool data_base::start()
         blocks.start() &&
         history.start() &&
         spends.start() &&
-        unspends.start() &&
+        unspents.start() &&
         stealth.start() &&
         transactions.start();
     const auto end_exclusive = end_write();
@@ -216,7 +216,7 @@ bool data_base::stop()
     const auto blocks_stop = blocks.stop();
     const auto history_stop = history.stop();
     const auto spends_stop = spends.stop();
-    const auto unspends_stop = unspends.stop();
+    const auto unspents_stop = unspents.stop();
     const auto stealth_stop = stealth.stop();
     const auto transactions_stop = transactions.stop();
     const auto end_exclusive = end_write();
@@ -232,7 +232,7 @@ bool data_base::stop()
         blocks_stop &&
         history_stop &&
         spends_stop &&
-        unspends_stop &&
+        unspents_stop &&
         stealth_stop &&
         transactions_stop &&
         end_exclusive;
@@ -244,7 +244,7 @@ bool data_base::close()
     const auto blocks_close = blocks.close();
     const auto history_close = history.close();
     const auto spends_close = spends.close();
-    const auto unspends_close = unspends.close();
+    const auto unspents_close = unspents.close();
     const auto stealth_close = stealth.close();
     const auto transactions_close = transactions.close();
 
@@ -253,7 +253,7 @@ bool data_base::close()
         blocks_close &&
         history_close &&
         spends_close &&
-        unspends_close &&
+        unspents_close &&
         stealth_close &&
         transactions_close;
 }
@@ -312,7 +312,7 @@ static bool is_allowed_duplicate(const header& head, size_t height)
 void data_base::synchronize()
 {
     spends.sync();
-    unspends.sync();
+    unspents.sync();
     history.sync();
     stealth.sync();
     transactions.sync();
@@ -367,7 +367,7 @@ void data_base::push_inputs(const hash_digest& tx_hash, size_t height,
         const auto& input = inputs[index];
         const chain::input_point point{ tx_hash, index };
         spends.store(input.previous_output, point);
-        unspends.remove(input.previous_output);
+        unspents.remove(input.previous_output);
 
         if (height < history_height_)
             continue;
@@ -499,7 +499,7 @@ void data_base::pop_inputs(const input::list& inputs, size_t height)
     for (auto input = inputs.rbegin(); input != inputs.rend(); ++input)
     {
         spends.remove(input->previous_output);
-        unspends.store(input->previous_output);
+        unspents.store(input->previous_output);
 
         if (height < history_height_)
             continue;
