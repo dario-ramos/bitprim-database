@@ -55,6 +55,8 @@ bool data_base::touch_file(const path& file_path)
 
 bool data_base::initialize(const path& prefix, const chain::block& genesis)
 {
+    std::cout << "fer - data_base::initialize() 1" << std::endl;
+
     // Create paths.
     const store paths(prefix);
 
@@ -72,6 +74,8 @@ bool data_base::initialize(const path& prefix, const chain::block& genesis)
 
 data_base::store::store(const path& prefix)
 {
+    std::cout << "fer - data_base::store::store() 1" << std::endl;
+
     // Hash-based lookup (hash tables).
     blocks_lookup = prefix / "block_table";
     history_lookup = prefix / "history_table";
