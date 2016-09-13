@@ -336,6 +336,14 @@ if (WITH_TOOLS)
   target_link_libraries(tools.transaction_db bitprim-database)
 endif()
 
+# local: tools/unspent_db/unspent_db
+#------------------------------------------------------------------------------
+if (WITH_TOOLS)
+  add_executable(tools.unspent_db
+    tools/unspent_db/unspent_db.cpp)
+  target_link_libraries(tools.unspent_db bitprim-database)
+endif()
+
 # Install
 #==============================================================================
 install(TARGETS bitprim-database
