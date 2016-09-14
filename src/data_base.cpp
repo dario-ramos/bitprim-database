@@ -393,7 +393,7 @@ void data_base::push_outputs(const hash_digest& tx_hash, size_t height,
         const auto& output = outputs[index];
         const chain::output_point point{ tx_hash, index };
 
-        unspents.store(output);
+        unspents.store(point);
 
         // Try to extract an address.
         const auto address = payment_address::extract(output.script);
@@ -478,7 +478,8 @@ chain::block data_base::pop()
     for (auto tx = txs.rbegin(); tx != txs.rend(); ++tx)
     {
         transactions.remove(tx->hash());
-        pop_outputs(tx->outputs, height);
+        // pop_outputs(tx->outputs, height);
+        pop_outputs(tx->hash(), height, tx->outputs);
 
         if (!tx->is_coinbase())
             pop_inputs(tx->inputs, height);
@@ -514,22 +515,42 @@ void data_base::pop_inputs(const input::list& inputs, size_t height)
     }
 }
 
-void data_base::pop_outputs(const output::list& outputs, size_t height)
+// void data_base::pop_outputs(const output::list& outputs, size_t height)
+void data_base::pop_outputs(hash_digest const& tx_hash, size_t height,
+    output::list const& outputs)
 {
+    //TODO Fer: cuando se llama a esto?
+    std::cout << "FER -- void data_base::pop_outputs(hash_digest const& tx_hash, size_t height, output::list const& outputs)\n";
+
     if (height < history_height_)
         return;
 
     // Loop in reverse.
-    for (auto output = outputs.rbegin(); output != outputs.rend(); ++output)
-    {
-        unspents.remove(*output);
+    // for (auto output = outputs.rbegin(); output != outputs.rend(); ++output)
+    // {
+    //     const chain::output_point point{ tx_hash, index };
+    //     unspents.remove(*output);
+
+    //     // Try to extract an address.
+    //     const auto address = payment_address::extract(output->script);
+
+    //     if (address)
+    //         history.delete_last_row(address.hash());
+    // }
+
+    // Loop in reverse.
+    for (uint32_t i = outputs.size(); i-- > 0;) {
+        const auto& output = outputs[i];
+
+        const chain::output_point point {tx_hash, i};
+        unspents.remove(point);
 
         // Try to extract an address.
-        const auto address = payment_address::extract(output->script);
+        const auto address = payment_address::extract(output.script);
 
         if (address)
             history.delete_last_row(address.hash());
-    }
+    }    
 }
 
 } // namespace data_base

@@ -130,7 +130,9 @@ private:
     void push_stealth(const hash_digest& tx_hash, size_t height,
         const outputs& outputs);
     void pop_inputs(const inputs& inputs, size_t height);
-    void pop_outputs(const outputs& outputs, size_t height);
+    // void pop_outputs(const outputs& outputs, size_t height);
+    void pop_outputs(hash_digest const& tx_hash, size_t height,
+        outputs const& outputs);
 
     const path lock_file_path_;
     const size_t history_height_;
