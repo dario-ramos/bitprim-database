@@ -42,13 +42,26 @@ record_hash_table_set<KeyType>::record_hash_table_set(
 template <typename KeyType>
 void record_hash_table_set<KeyType>::store(KeyType const& key)
 {
+    auto const index = bucket_index(key);
+
     // Store current bucket value.
-    const auto old_begin = read_bucket_value(key);
+    const auto old_begin = read_bucket_value_from_index(index);
     record_row_set<KeyType> item(manager_, 0);
     const auto new_begin = item.create(key, old_begin);
 
     // Link record to header.
-    link(key, new_begin);
+    link_with_index(index, new_begin);
+
+
+
+
+    // // Store current bucket value.
+    // const auto old_begin = read_bucket_value(key);
+    // record_row_set<KeyType> item(manager_, 0);
+    // const auto new_begin = item.create(key, old_begin);
+
+    // // Link record to header.
+    // link(key, new_begin);
 }
 
 // This is limited to returning the first of multiple matching key values.
@@ -140,7 +153,17 @@ template <typename KeyType>
 array_index record_hash_table_set<KeyType>::read_bucket_value(
     const KeyType& key) const
 {
-    auto value = header_.read(bucket_index(key));
+    // auto value = header_.read(bucket_index(key));
+    // static_assert(sizeof(value) == sizeof(array_index), "Invalid size");
+    // return value;
+    return read_bucket_value_from_index<KeyType>(bucket_index(key));
+}
+
+template <typename KeyType>
+array_index record_hash_table_set<KeyType>::read_bucket_value_from_index(
+    array_index index) const
+{
+    auto value = header_.read(index);
     static_assert(sizeof(value) == sizeof(array_index), "Invalid size");
     return value;
 }
@@ -149,8 +172,17 @@ template <typename KeyType>
 void record_hash_table_set<KeyType>::link(const KeyType& key,
     const array_index begin)
 {
-    header_.write(bucket_index(key), begin);
+    // header_.write(bucket_index(key), begin);
+    link_with_index(bucket_index(key), begin);
 }
+
+template <typename KeyType>
+void record_hash_table_set<KeyType>::link_with_index(array_index index,
+    const array_index begin)
+{
+    header_.write(index, begin);
+}
+
 
 template <typename KeyType>
 template <typename ListItem>

@@ -80,9 +80,11 @@ private:
 
     // What is the record start index for a chain.
     array_index read_bucket_value(const KeyType& key) const;
+    array_index read_bucket_value_from_index(array_index index) const;
 
     // Link a new chain into the bucket header.
     void link(const KeyType& key, const array_index begin);
+    void link_with_index(array_index index, const array_index begin);
 
     // Release node from linked chain.
     template <typename ListItem>
