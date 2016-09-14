@@ -393,6 +393,8 @@ void data_base::push_outputs(const hash_digest& tx_hash, size_t height,
         const auto& output = outputs[index];
         const chain::output_point point{ tx_hash, index };
 
+        unspents.store(output);
+
         // Try to extract an address.
         const auto address = payment_address::extract(output.script);
         if (!address)
@@ -520,6 +522,8 @@ void data_base::pop_outputs(const output::list& outputs, size_t height)
     // Loop in reverse.
     for (auto output = outputs.rbegin(); output != outputs.rend(); ++output)
     {
+        unspents.remove(*output);
+
         // Try to extract an address.
         const auto address = payment_address::extract(output->script);
 
