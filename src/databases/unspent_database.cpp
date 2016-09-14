@@ -48,11 +48,13 @@ unspent_database::unspent_database(path const& filename,
     lookup_manager_(lookup_file_, header_size, record_size),
     lookup_map_(lookup_header_, lookup_manager_)
 {
+    std::cout << "unspent_database::unspent_database(...)\n";
 }
 
 // Close does not call stop because there is no way to detect thread join.
 unspent_database::~unspent_database()
 {
+    std::cout << "unspent_database::~unspent_database()\n";
     close();
 }
 
@@ -62,6 +64,7 @@ unspent_database::~unspent_database()
 // Initialize files and start.
 bool unspent_database::create()
 {
+    std::cout << "bool unspent_database::create()\n";
     // Resize and create require a started file.
     if (!lookup_file_.start())
         return false;
@@ -84,6 +87,7 @@ bool unspent_database::create()
 
 bool unspent_database::start()
 {
+    std::cout << "bool unspent_database::start()\n";
     return
         lookup_file_.start() &&
         lookup_header_.start() &&
@@ -92,11 +96,13 @@ bool unspent_database::start()
 
 bool unspent_database::stop()
 {
+    std::cout << "bool unspent_database::stop()\n";
     return lookup_file_.stop();
 }
 
 bool unspent_database::close()
 {
+    std::cout << "bool unspent_database::close()\n";
     return lookup_file_.close();
 }
 
@@ -104,22 +110,26 @@ bool unspent_database::close()
 
 bool unspent_database::contains(output_point const& outpoint) const
 {
+    std::cout << "bool unspent_database::contains(output_point const& outpoint) const\n";
     return lookup_map_.contains(outpoint);
 }
 
 void unspent_database::store(chain::output_point const& outpoint)
 {
+    std::cout << "void unspent_database::store(chain::output_point const& outpoint)\n";
     lookup_map_.store(outpoint);
 }
 
 void unspent_database::remove(output_point const& outpoint)
 {
+    std::cout << "void unspent_database::remove(output_point const& outpoint)\n";
     DEBUG_ONLY(bool success =) lookup_map_.unlink(outpoint);
     BITCOIN_ASSERT(success);
 }
 
 void unspent_database::sync()
 {
+    std::cout << "void unspent_database::sync()\n";
     lookup_manager_.sync();
 }
 
