@@ -86,6 +86,9 @@ bool record_hash_table_set<KeyType>::unlink(const KeyType& key)
 {
     // Find start item...
     const auto begin = read_bucket_value(key);
+
+    if (begin == header_.empty) return false;
+    
     const record_row_set<KeyType> begin_item(manager_, begin);
 
     // If start item has the key then unlink from buckets.
