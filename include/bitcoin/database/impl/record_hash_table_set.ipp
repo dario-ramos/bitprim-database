@@ -156,7 +156,7 @@ array_index record_hash_table_set<KeyType>::read_bucket_value(
     // auto value = header_.read(bucket_index(key));
     // static_assert(sizeof(value) == sizeof(array_index), "Invalid size");
     // return value;
-    return read_bucket_value_from_index<KeyType>(bucket_index(key));
+    return read_bucket_value_from_index(bucket_index(key));
 }
 
 template <typename KeyType>
