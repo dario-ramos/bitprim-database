@@ -103,6 +103,7 @@ bool spend_database::close()
 
 spend spend_database::get(const output_point& outpoint) const
 {
+    std::cout << "spend spend_database::get(const output_point& outpoint) const\n";
     spend result{ false };
     const auto memory = lookup_map_.find(outpoint);
 
@@ -120,6 +121,8 @@ spend spend_database::get(const output_point& outpoint) const
 void spend_database::store(const chain::output_point& outpoint,
     const chain::input_point& spend)
 {
+    std::cout << "void spend_database::store(const chain::output_point& outpoint, const chain::input_point& spend)\n";
+
     const auto write = [&spend](memory_ptr data)
     {
         auto serial = make_serializer(REMAP_ADDRESS(data));
@@ -131,12 +134,14 @@ void spend_database::store(const chain::output_point& outpoint,
 
 void spend_database::remove(const output_point& outpoint)
 {
+    std::cout << "void spend_database::remove(const output_point& outpoint)\n";
     DEBUG_ONLY(bool success =) lookup_map_.unlink(outpoint);
     BITCOIN_ASSERT(success);
 }
 
 void spend_database::sync()
 {
+    std::cout << "void spend_database::sync()\n";
     lookup_manager_.sync();
 }
 
