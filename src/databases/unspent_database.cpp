@@ -117,19 +117,22 @@ bool unspent_database::contains(output_point const& outpoint) const
 void unspent_database::store(chain::output_point const& outpoint)
 {
     // std::cout << "void unspent_database::store(chain::output_point const& outpoint)\n";
+    std::cout << "unspent_database::store  lookup_manager_.count(): " << lookup_manager_.count() << "\n";
     lookup_map_.store(outpoint);
+    std::cout << "unspent_database::store  lookup_manager_.count(): " << lookup_manager_.count() << "\n";
 }
 
 void unspent_database::remove(output_point const& outpoint)
 {
-    std::cout << "void unspent_database::remove(output_point const& outpoint)\n";
+    // std::cout << "void unspent_database::remove(output_point const& outpoint)\n";
     // auto contains = lookup_map_.contains(outpoint);
     // std::cout << "contains: " << contains << "\n";
 
+    std::cout << "unspent_database::remove lookup_manager_.count(): " << lookup_manager_.count() << "\n";
     bool success = lookup_map_.unlink(outpoint);
     std::cout << "success:                 " << success << "\n";
-    std::cout << "lookup_header_.size():   " << lookup_header_.size() << "\n";
-    std::cout << "lookup_manager_.count(): " << lookup_manager_.count() << "\n";
+    // std::cout << "lookup_header_.size():   " << lookup_header_.size() << "\n";
+    std::cout << "unspent_database::remove lookup_manager_.count(): " << lookup_manager_.count() << "\n";
 
     // DEBUG_ONLY(bool success =) lookup_map_.unlink(outpoint);
     // BITCOIN_ASSERT(success);
