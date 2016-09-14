@@ -116,7 +116,7 @@ bool unspent_database::contains(output_point const& outpoint) const
 
 void unspent_database::store(chain::output_point const& outpoint)
 {
-    std::cout << "void unspent_database::store(chain::output_point const& outpoint)\n";
+    // std::cout << "void unspent_database::store(chain::output_point const& outpoint)\n";
     lookup_map_.store(outpoint);
 }
 
