@@ -127,9 +127,9 @@ void unspent_database::remove(output_point const& outpoint)
     // std::cout << "contains: " << contains << "\n";
 
     bool success = lookup_map_.unlink(outpoint);
-    std::cout << "success: " << success << "\n";
-        
-
+    std::cout << "success:                 " << success << "\n";
+    std::cout << "lookup_header_.size():   " << lookup_header_.size() << "\n";
+    std::cout << "lookup_manager_.count(): " << lookup_manager_.count() << "\n";
 
     // DEBUG_ONLY(bool success =) lookup_map_.unlink(outpoint);
     // BITCOIN_ASSERT(success);
