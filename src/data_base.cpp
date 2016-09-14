@@ -361,6 +361,8 @@ void data_base::push(const block& block, uint64_t height)
 void data_base::push_inputs(const hash_digest& tx_hash, size_t height,
     const input::list& inputs)
 {
+    std::cout << "void data_base::push_inputs(const hash_digest& tx_hash, size_t height, const input::list& inputs)\n";
+
     for (uint32_t index = 0; index < inputs.size(); ++index)
     {
         // We also push spends in the inputs loop.
