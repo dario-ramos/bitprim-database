@@ -94,7 +94,7 @@ public:
    //    cont_ = mfile_ptr_->find<cont_type>(mapname_.c_str()).first;
    // }
 
-   mem_hash_set(std::string const& filename, std::string const& mapname, std::size_t bucket_count, std::size_t initial_file_size, mem_hash::construct_tag) 
+   mem_hash_set(std::string const& filename, std::string const& mapname, std::size_t bucket_count, std::size_t initial_file_size) 
       : filename_(filename)
       , mapname_(mapname)
    {
@@ -185,6 +185,9 @@ public:
       return mfile_ptr_->get_free_memory();
    }
 
+   bool flush() {  
+      return mfile_ptr_->flush();  
+   }
    
 
 private:

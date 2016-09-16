@@ -33,14 +33,17 @@ namespace database {
 using namespace boost::filesystem;
 using namespace bc::chain;
 
-BC_CONSTEXPR size_t number_buckets = 45000000; //228110589;
-BC_CONSTEXPR size_t header_size = record_hash_table_header_size(number_buckets);
-BC_CONSTEXPR size_t initial_map_file_size = header_size + minimum_records_size;
-BC_CONSTEXPR size_t record_size = hash_table_set_record_size<chain::point>();
+// BC_CONSTEXPR size_t number_buckets = 45000000; //228110589;
+// BC_CONSTEXPR size_t header_size = record_hash_table_header_size(number_buckets);
+// BC_CONSTEXPR size_t initial_map_file_size = header_size + minimum_records_size;
+// BC_CONSTEXPR size_t record_size = hash_table_set_record_size<chain::point>();
+
+BC_CONSTEXPR size_t number_buckets = 45000000; //3;
+BC_CONSTEXPR size_t filesize = buckets * 12; //65536;
 
 unspent_database_v2::unspent_database_v2(path const& filename,
     std::shared_ptr<shared_mutex> mutex)
-    : lookup_map_(new record_map(filename, filename, mem_hash::find_tag()));
+    : lookup_map_(new record_map(filename, filename, number_buckets, filesize));
 
   // : lookup_file_(filename, mutex), 
   //   lookup_header_(lookup_file_, number_buckets),
@@ -129,10 +132,9 @@ void unspent_database_v2::remove(output_point const& outpoint) {
     // BITCOIN_ASSERT(success);
 }
 
-//TODO Fer
 void unspent_database_v2::sync() {
     //std::cout << "void unspent_database_v2::sync()\n";
-    // lookup_manager_.sync();
+    lookup_manager_.flush();
 }
 
 //TODO Fer
