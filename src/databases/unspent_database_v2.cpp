@@ -65,9 +65,9 @@ unspent_database_v2::unspent_database_v2(path const& filename,
 
 // Initialize files and start.
 bool unspent_database_v2::create() {
-    std::cout << "unspent_database_v2::create()" << "\n";
-    std::cout << "filename_: " << filename_ << "\n";
-    std::cout << "mapname_: " << mapname_ << "\n";
+    // std::cout << "unspent_database_v2::create()" << "\n";
+    // std::cout << "filename_: " << filename_ << "\n";
+    // std::cout << "mapname_: " << mapname_ << "\n";
 
     lookup_map_.reset(new record_map(filename_, mapname_, number_buckets, filesize));
     return true;
@@ -99,7 +99,7 @@ bool unspent_database_v2::start() {
     std::cout << "mapname_: " << mapname_ << "\n";
     
     lookup_map_.reset(new record_map(filename_, mapname_, number_buckets, filesize));
-    
+
     return true;
     // //std::cout << "bool unspent_database_v2::start()\n";
     // return
@@ -131,23 +131,19 @@ bool unspent_database_v2::contains(output_point const& outpoint) const {
 void unspent_database_v2::store(chain::output_point const& outpoint) {
     boost::unique_lock<shared_mutex> lock(mutex_);
     // std::cout << "void unspent_database_v2::store(chain::output_point const& outpoint)\n";
-    std::cout << "unspent_database_v2::store  lookup_map_->size(): " << lookup_map_->size() << "\n";
+    // std::cout << "unspent_database_v2::store  lookup_map_->size(): " << lookup_map_->size() << "\n";
     lookup_map_->insert(outpoint);
-    std::cout << "unspent_database_v2::store  lookup_map_->size(): " << lookup_map_->size() << "\n";
+    // std::cout << "unspent_database_v2::store  lookup_map_->size(): " << lookup_map_->size() << "\n";
 }
 
 void unspent_database_v2::remove(output_point const& outpoint) {
     boost::unique_lock<shared_mutex> lock(mutex_);
 
-    // std::cout << "void unspent_database_v2::remove(output_point const& outpoint)\n";
-    // auto contains = lookup_map_->contains(outpoint);
-    // std::cout << "contains: " << contains << "\n";
-
-    std::cout << "unspent_database_v2::remove lookup_map_->size(): " << lookup_map_->size() << "\n";
+    // std::cout << "unspent_database_v2::remove lookup_map_->size(): " << lookup_map_->size() << "\n";
     bool success = lookup_map_->erase(outpoint) > 0;
-    std::cout << "success:                 " << success << "\n";
+    // std::cout << "success:                 " << success << "\n";
     // std::cout << "lookup_header_.size():   " << lookup_header_.size() << "\n";
-    std::cout << "unspent_database_v2::remove lookup_map_->size(): " << lookup_map_->size() << "\n";
+    // std::cout << "unspent_database_v2::remove lookup_map_->size(): " << lookup_map_->size() << "\n";
 
     // DEBUG_ONLY(bool success =) lookup_map_->unlink(outpoint);
     // BITCOIN_ASSERT(success);
