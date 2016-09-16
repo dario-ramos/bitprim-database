@@ -26,6 +26,7 @@
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database/memory/memory.hpp>
+#include <bitcoin/chain/point.hpp>
 
 namespace libbitcoin {
 namespace database {
