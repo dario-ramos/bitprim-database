@@ -59,6 +59,7 @@ unspent_database_v2::unspent_database_v2(path const& filename,
 
 // Initialize files and start.
 bool unspent_database_v2::create() {
+    return true;
     // //std::cout << "bool unspent_database_v2::create()\n";
     // // Resize and create require a started file.
     // if (!lookup_file_.start())
@@ -81,6 +82,7 @@ bool unspent_database_v2::create() {
 // ----------------------------------------------------------------------------
 
 bool unspent_database_v2::start() {
+    return true;
     // //std::cout << "bool unspent_database_v2::start()\n";
     // return
     //     lookup_file_.start() &&
@@ -89,11 +91,13 @@ bool unspent_database_v2::start() {
 }
 
 bool unspent_database_v2::stop() {
+    return true;
     // //std::cout << "bool unspent_database_v2::stop()\n";
     // return lookup_file_.stop();
 }
 
 bool unspent_database_v2::close() {
+    return true;
     // //std::cout << "bool unspent_database_v2::close()\n";
     // return lookup_file_.close();
 }
