@@ -109,9 +109,9 @@ bool unspent_database_v2::contains(output_point const& outpoint) const {
 void unspent_database_v2::store(chain::output_point const& outpoint) {
     boost::unique_lock<shared_mutex> lock(mutex_);
     // std::cout << "void unspent_database_v2::store(chain::output_point const& outpoint)\n";
-    std::cout << "unspent_database_v2::store  lookup_manager_.count(): " << lookup_manager_.count() << "\n";
+    std::cout << "unspent_database_v2::store  lookup_map_.size(): " << lookup_map_.size() << "\n";
     lookup_map_.insert(outpoint);
-    std::cout << "unspent_database_v2::store  lookup_manager_.count(): " << lookup_manager_.count() << "\n";
+    std::cout << "unspent_database_v2::store  lookup_map_.size(): " << lookup_map_.size() << "\n";
 }
 
 void unspent_database_v2::remove(output_point const& outpoint) {
@@ -121,11 +121,11 @@ void unspent_database_v2::remove(output_point const& outpoint) {
     // auto contains = lookup_map_.contains(outpoint);
     // std::cout << "contains: " << contains << "\n";
 
-    std::cout << "unspent_database_v2::remove lookup_manager_.count(): " << lookup_manager_.count() << "\n";
+    std::cout << "unspent_database_v2::remove lookup_map_.size(): " << lookup_map_.size() << "\n";
     bool success = lookup_map_.erase(outpoint) > 0;
     std::cout << "success:                 " << success << "\n";
     // std::cout << "lookup_header_.size():   " << lookup_header_.size() << "\n";
-    std::cout << "unspent_database_v2::remove lookup_manager_.count(): " << lookup_manager_.count() << "\n";
+    std::cout << "unspent_database_v2::remove lookup_map_.size(): " << lookup_map_.size() << "\n";
 
     // DEBUG_ONLY(bool success =) lookup_map_.unlink(outpoint);
     // BITCOIN_ASSERT(success);
@@ -134,7 +134,7 @@ void unspent_database_v2::remove(output_point const& outpoint) {
 void unspent_database_v2::sync() {
     boost::unique_lock<shared_mutex> lock(mutex_);
     //std::cout << "void unspent_database_v2::sync()\n";
-    lookup_manager_.flush();
+    lookup_map_.flush();
 }
 
 //TODO Fer
@@ -144,7 +144,7 @@ unspent_statinfo unspent_database_v2::statinfo() const {
     // return
     // {
     //     lookup_header_.size(),
-    //     lookup_manager_.count()
+    //     lookup_map_.size()
     // };
 }
 
