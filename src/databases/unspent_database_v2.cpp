@@ -65,7 +65,7 @@ unspent_database_v2::unspent_database_v2(path const& filename,
 
 // Initialize files and start.
 bool unspent_database_v2::create() {
-    lookup_map_.reset(new record_map(filename.string(), mapname, number_buckets, filesize));
+    lookup_map_.reset(new record_map(filename_, mapname_, number_buckets, filesize));
     return true;
 
     // //std::cout << "bool unspent_database_v2::create()\n";
