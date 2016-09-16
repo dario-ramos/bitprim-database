@@ -366,7 +366,7 @@ void data_base::push(const block& block, uint64_t height)
 void data_base::push_inputs(const hash_digest& tx_hash, size_t height,
     const input::list& inputs)
 {
-    std::cout << "void data_base::push_inputs(const hash_digest& tx_hash, size_t height, const input::list& inputs)\n";
+    // std::cout << "void data_base::push_inputs(const hash_digest& tx_hash, size_t height, const input::list& inputs)\n";
 
     for (uint32_t index = 0; index < inputs.size(); ++index)
     {
@@ -527,7 +527,7 @@ void data_base::pop_outputs(hash_digest const& tx_hash, size_t height,
     output::list const& outputs)
 {
     //TODO Fer: cuando se llama a esto?
-    std::cout << "FER -- void data_base::pop_outputs(hash_digest const& tx_hash, size_t height, output::list const& outputs)\n";
+    // std::cout << "FER -- void data_base::pop_outputs(hash_digest const& tx_hash, size_t height, output::list const& outputs)\n";
 
     if (height < history_height_)
         return;
