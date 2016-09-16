@@ -49,7 +49,7 @@ struct hash<bc::chain::point> {
 namespace libbitcoin {
 namespace database {
 
-struct BCD_API unspent_statinfo
+struct BCD_API unspent_v2_statinfo
 {
     /// Number of buckets used in the hashtable.
     /// load factor = rows / buckets
@@ -97,7 +97,7 @@ public:
     void sync();
 
     /// Return statistical info about the database.
-    unspent_statinfo statinfo() const;
+    unspent_v2_statinfo statinfo() const;
 
 private:
     using record_map = mem_hash_set<chain::point>;

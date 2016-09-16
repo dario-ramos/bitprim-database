@@ -138,7 +138,7 @@ void unspent_database_v2::sync() {
 }
 
 //TODO Fer
-unspent_statinfo unspent_database_v2::statinfo() const {
+unspent_v2_statinfo unspent_database_v2::statinfo() const {
     return {0, 0};
 
     // return
