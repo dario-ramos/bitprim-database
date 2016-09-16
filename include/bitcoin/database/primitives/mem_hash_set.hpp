@@ -98,13 +98,13 @@ public:
       : filename_(filename)
       , mapname_(mapname)
    {
-      if (boost::filesystem::exists()) {
-         file_size_ = file_size(filename_);
+      if (boost::filesystem::exists(filename_)) {
+         file_size_ = boost::filesystem::file_size(filename_);
          mfile_ptr_.reset(new boost::interprocess::managed_mapped_file(boost::interprocess::open_or_create, filename_.c_str(), file_size_));
          cont_ = mfile_ptr_->find<cont_type>(mapname_.c_str()).first;
       } else {
          mfile_ptr_.reset(new boost::interprocess::managed_mapped_file(boost::interprocess::open_or_create, filename_.c_str(), initial_file_size));
-         file_size_ = file_size(filename_);
+         file_size_ = boost::filesystem::file_size(filename_);
          cont_ = mfile_ptr_->construct<cont_type>(mapname_.c_str())(bucket_count, hasher(), key_equal(), mfile_ptr_->get_allocator<value_type>());
       }
    }
@@ -157,7 +157,7 @@ public:
          // std::cout << "requested_size: " << requested_size << std::endl;
 
          boost::interprocess::managed_mapped_file::grow(filename_.c_str(), requested_size);
-         file_size_ = file_size(filename_);
+         file_size_ = boost::filesystem::file_size(filename_);
          mfile_ptr_.reset(new boost::interprocess::managed_mapped_file(boost::interprocess::open_or_create, filename_.c_str(), file_size_));
          cont_ = mfile_ptr_->find<cont_type>(mapname_.c_str()).first;
 
@@ -181,7 +181,8 @@ public:
       return cont_->count(key);     
    }
 
-   auto get_free_memory() const {
+   //TODO Fer
+   size_t get_free_memory() const {
       return mfile_ptr_->get_free_memory();
    }
 
@@ -197,6 +198,9 @@ private:
    std::unique_ptr<boost::interprocess::managed_mapped_file> mfile_ptr_;
    cont_type* cont_;
 };
+
+} // namespace database
+} // namespace libbitcoin
 
 #endif /*LIBBITCOIN_DATABASE_MEM_HASH_SET_HPP*/
 
