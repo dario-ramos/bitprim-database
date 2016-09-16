@@ -137,7 +137,8 @@ add_library(bitprim-database ${MODE}
   src/databases/spend_database.cpp
   src/databases/stealth_database.cpp
   src/databases/transaction_database.cpp
-  src/databases/unspent_database.cpp
+  # src/databases/unspent_database.cpp
+  src/databases/unspent_database_v2.cpp
   src/memory/accessor.cpp
   src/memory/allocator.cpp
   src/memory/memory_map.cpp
@@ -185,7 +186,9 @@ if (WITH_TESTS)
     test/spend_database.cpp
     test/structure.cpp
     test/transaction_database.cpp
-    test/unspent_database.cpp)
+    # test/unspent_database.cpp
+    # test/unspent_database_v2.cpp
+    )
   if (ENABLE_SHARED)
     target_compile_definitions(bitprim_database_test PRIVATE -DBOOST_TEST_DYN_LINK)
   endif()
@@ -364,7 +367,8 @@ set(_bitprim_headers
   bitcoin/database/databases/spend_database.hpp
   bitcoin/database/databases/stealth_database.hpp
   bitcoin/database/databases/transaction_database.hpp
-  bitcoin/database/databases/unspent_database.hpp
+  # bitcoin/database/databases/unspent_database.hpp
+  bitcoin/database/databases/unspent_database_v2.hpp
   # include_bitcoin_database_impl_HEADERS =
   bitcoin/database/impl/hash_table_header.ipp
   bitcoin/database/impl/record_hash_table.ipp
