@@ -65,7 +65,8 @@ class BCD_API unspent_database_v2
 {
 public:
     /// Construct the database.
-    unspent_database_v2(boost::filesystem::path const& filename,
+    unspent_database_v2(boost::filesystem::path const& filename, 
+        std::string const& mapname,
         std::shared_ptr<shared_mutex> mutex=nullptr);
 
     /// Close the database (all threads must first be stopped).

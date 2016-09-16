@@ -61,6 +61,7 @@ public:
         path spends_lookup;
         path unspents_lookup;
         path transactions_lookup;
+        std::string unspents_map;
     };
 
     /// Create a new database file with a given path prefix and default paths.

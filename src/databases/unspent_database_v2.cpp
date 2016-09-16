@@ -42,10 +42,16 @@ BC_CONSTEXPR size_t number_buckets = 45000000; //3;
 BC_CONSTEXPR size_t filesize = number_buckets * 12; //65536;
 
 unspent_database_v2::unspent_database_v2(path const& filename,
+    std::string const& mapname,
     std::shared_ptr<shared_mutex> mutex)
-    : lookup_map_(new record_map(filename.string(), filename.string(), number_buckets, filesize))
+    // : lookup_map_(new record_map(filename.string(), filename.string(), number_buckets, filesize))
 {
-    //std::cout << "unspent_database_v2::unspent_database_v2(...)\n";
+    std::cout << "unspent_database_v2::unspent_database_v2(...)" << std::endl;
+    std::cout << "filename.string(): " << filename.string() << std::endl;
+
+    lookup_map_.reset(new record_map(filename.string(), mapname, number_buckets, filesize));
+
+    std::cout << "unspent_database_v2::unspent_database_v2(...) -- END" << std::endl;
 }
 
 // // Close does not call stop because there is no way to detect thread join.

@@ -76,7 +76,10 @@ data_base::store::store(const path& prefix)
     blocks_lookup = prefix / "block_table";
     history_lookup = prefix / "history_table";
     spends_lookup = prefix / "spend_table";
+
     unspents_lookup = prefix / "unspent_table";
+    unspents_map = "unspent_table";
+
     transactions_lookup = prefix / "transaction_table";
 
     // Height-based (reverse) lookup.
@@ -147,7 +150,7 @@ data_base::data_base(const store& paths, size_t history_height,
     history(paths.history_lookup, paths.history_rows, mutex_),
     stealth(paths.stealth_rows, mutex_),
     spends(paths.spends_lookup, mutex_),
-    unspents(paths.unspents_lookup, mutex_),
+    unspents(paths.unspents_lookup, paths.unspents_map, mutex_),
     transactions(paths.transactions_lookup, mutex_)
 {
 }
