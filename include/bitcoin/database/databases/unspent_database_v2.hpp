@@ -53,7 +53,7 @@ public:
         std::shared_ptr<shared_mutex> mutex=nullptr);
 
     /// Close the database (all threads must first be stopped).
-    ~unspent_database_v2();
+    // ~unspent_database_v2();
 
     /// Initialize a new spend database.
     bool create();
@@ -92,6 +92,7 @@ private:
     // record_hash_table_header lookup_header_;
     // record_manager lookup_manager_;
     record_map_ptr lookup_map_;
+    mutable shared_mutex mutex_;
 };
 
 } // namespace database

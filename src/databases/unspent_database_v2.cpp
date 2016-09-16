@@ -39,16 +39,11 @@ using namespace bc::chain;
 // BC_CONSTEXPR size_t record_size = hash_table_set_record_size<chain::point>();
 
 BC_CONSTEXPR size_t number_buckets = 45000000; //3;
-BC_CONSTEXPR size_t filesize = buckets * 12; //65536;
+BC_CONSTEXPR size_t filesize = number_buckets * 12; //65536;
 
 unspent_database_v2::unspent_database_v2(path const& filename,
     std::shared_ptr<shared_mutex> mutex)
-    : lookup_map_(new record_map(filename, filename, number_buckets, filesize));
-
-  // : lookup_file_(filename, mutex), 
-  //   lookup_header_(lookup_file_, number_buckets),
-  //   lookup_manager_(lookup_file_, header_size, record_size),
-  //   lookup_map_(lookup_header_, lookup_manager_)
+    : lookup_map_(new record_map(filename.string(), filename.string(), number_buckets, filesize))
 {
     //std::cout << "unspent_database_v2::unspent_database_v2(...)\n";
 }
@@ -85,32 +80,34 @@ bool unspent_database_v2::create() {
 // Startup and shutdown.
 // ----------------------------------------------------------------------------
 
-// bool unspent_database_v2::start() {
-//     //std::cout << "bool unspent_database_v2::start()\n";
-//     return
-//         lookup_file_.start() &&
-//         lookup_header_.start() &&
-//         lookup_manager_.start();
-// }
+bool unspent_database_v2::start() {
+    // //std::cout << "bool unspent_database_v2::start()\n";
+    // return
+    //     lookup_file_.start() &&
+    //     lookup_header_.start() &&
+    //     lookup_manager_.start();
+}
 
-// bool unspent_database_v2::stop() {
-//     //std::cout << "bool unspent_database_v2::stop()\n";
-//     return lookup_file_.stop();
-// }
+bool unspent_database_v2::stop() {
+    // //std::cout << "bool unspent_database_v2::stop()\n";
+    // return lookup_file_.stop();
+}
 
-// bool unspent_database_v2::close() {
-//     //std::cout << "bool unspent_database_v2::close()\n";
-//     return lookup_file_.close();
-// }
+bool unspent_database_v2::close() {
+    // //std::cout << "bool unspent_database_v2::close()\n";
+    // return lookup_file_.close();
+}
 
 // ----------------------------------------------------------------------------
 
 bool unspent_database_v2::contains(output_point const& outpoint) const {
+    boost::shared_lock<shared_mutex> lock(mutex_);
     //std::cout << "bool unspent_database_v2::contains(output_point const& outpoint) const\n";
     return lookup_map_.count(outpoint) > 0;
 }
 
 void unspent_database_v2::store(chain::output_point const& outpoint) {
+    boost::unique_lock<shared_mutex> lock(mutex_);
     // std::cout << "void unspent_database_v2::store(chain::output_point const& outpoint)\n";
     std::cout << "unspent_database_v2::store  lookup_manager_.count(): " << lookup_manager_.count() << "\n";
     lookup_map_.insert(outpoint);
@@ -118,6 +115,8 @@ void unspent_database_v2::store(chain::output_point const& outpoint) {
 }
 
 void unspent_database_v2::remove(output_point const& outpoint) {
+    boost::unique_lock<shared_mutex> lock(mutex_);
+
     // std::cout << "void unspent_database_v2::remove(output_point const& outpoint)\n";
     // auto contains = lookup_map_.contains(outpoint);
     // std::cout << "contains: " << contains << "\n";
@@ -133,6 +132,7 @@ void unspent_database_v2::remove(output_point const& outpoint) {
 }
 
 void unspent_database_v2::sync() {
+    boost::unique_lock<shared_mutex> lock(mutex_);
     //std::cout << "void unspent_database_v2::sync()\n";
     lookup_manager_.flush();
 }
