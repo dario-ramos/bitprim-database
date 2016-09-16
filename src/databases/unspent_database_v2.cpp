@@ -68,7 +68,7 @@ bool unspent_database_v2::create() {
     std::cout << "unspent_database_v2::create()" << "\n";
     std::cout << "filename_: " << filename_ << "\n";
     std::cout << "mapname_: " << mapname_ << "\n";
-    
+
     lookup_map_.reset(new record_map(filename_, mapname_, number_buckets, filesize));
     return true;
 
@@ -94,6 +94,12 @@ bool unspent_database_v2::create() {
 // ----------------------------------------------------------------------------
 
 bool unspent_database_v2::start() {
+    std::cout << "unspent_database_v2::start()" << "\n";
+    std::cout << "filename_: " << filename_ << "\n";
+    std::cout << "mapname_: " << mapname_ << "\n";
+    
+    lookup_map_.reset(new record_map(filename_, mapname_, number_buckets, filesize));
+    
     return true;
     // //std::cout << "bool unspent_database_v2::start()\n";
     // return

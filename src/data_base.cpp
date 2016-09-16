@@ -103,8 +103,10 @@ bool data_base::store::touch_all() const
         touch_file(history_rows) &&
         touch_file(stealth_rows) &&
         touch_file(spends_lookup) &&
-        touch_file(unspents_lookup) &&
         touch_file(transactions_lookup);
+
+        // touch_file(unspents_lookup) &&
+
 }
 
 data_base::file_lock data_base::initialize_lock(const path& lock)
