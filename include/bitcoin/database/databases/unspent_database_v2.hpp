@@ -30,6 +30,22 @@
  #include <bitcoin/database/primitives/mem_hash_set.hpp>
 // #include <bitcoin/database/memory/memory_map.hpp>
 
+
+namespace boost {
+
+template <>
+struct hash<bc::chain::point> {
+    // Changes to this function invalidate existing database files.
+    size_t operator()(const bc::chain::point& point) const {
+        size_t seed = 0;
+        boost::hash_combine(seed, point.hash);
+        boost::hash_combine(seed, point.index);
+        return seed;
+    }
+};
+
+} // namespace boost
+
 namespace libbitcoin {
 namespace database {
 
