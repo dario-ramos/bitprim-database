@@ -75,25 +75,6 @@ public:
    using local_iterator = typename cont_type::local_iterator;
    using const_local_iterator = typename cont_type::const_local_iterator;
 
-   // mem_hash_set(std::string const& filename, std::string const& mapname, std::size_t bucket_count, std::size_t initial_file_size, mem_hash::construct_tag) 
-   //    : filename_(filename)
-   //    , mapname_(mapname)
-   //    , mfile_ptr_(new boost::interprocess::managed_mapped_file(boost::interprocess::open_or_create, filename_.c_str(), initial_file_size))
-   // {
-   //    file_size_ = file_size(filename_);
-   //    cont_ = mfile_ptr_->construct<cont_type>(mapname_.c_str())(bucket_count, hasher(), key_equal(), mfile_ptr_->get_allocator<value_type>());
-   // }
-
-
-   // mem_hash_set(std::string const& filename, std::string const& mapname, mem_hash::find_tag) 
-   //    : filename_(filename)
-   //    , mapname_(mapname)
-   //    , file_size_(file_size(filename_))
-   //    , mfile_ptr_(new boost::interprocess::managed_mapped_file(boost::interprocess::open_or_create, filename_.c_str(), file_size_))
-   // {
-   //    cont_ = mfile_ptr_->find<cont_type>(mapname_.c_str()).first;
-   // }
-
    mem_hash_set(std::string const& filename, std::string const& mapname, std::size_t bucket_count, std::size_t initial_file_size) 
       : filename_(filename)
       , mapname_(mapname)
@@ -190,7 +171,6 @@ public:
       return mfile_ptr_->flush();  
    }
    
-
 private:
    std::string filename_;
    std::string mapname_;
