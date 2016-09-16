@@ -98,7 +98,9 @@ template <typename KeyType>
 bool record_hash_table_set<KeyType>::unlink(const KeyType& key)
 {
     // Find start item...
-    const auto begin = read_bucket_value(key);
+    // const auto begin = read_bucket_value(key);
+    auto const index = bucket_index(key);
+    auto const begin = read_bucket_value_from_index(index);
 
     if (begin == header_.empty) return false;
     
@@ -107,7 +109,8 @@ bool record_hash_table_set<KeyType>::unlink(const KeyType& key)
     // If start item has the key then unlink from buckets.
     if (begin_item.compare(key))
     {
-        link(key, begin_item.next_index());
+        // link(key, begin_item.next_index());
+        link_with_index(index, begin_item.next_index());
         return true;
     }
 
