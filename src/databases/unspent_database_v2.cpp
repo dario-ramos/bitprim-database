@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <bitcoin/database/databases/unspent_database_v2.hpp>
 
 #include <algorithm>
@@ -42,16 +43,15 @@ BC_CONSTEXPR size_t number_buckets = 45000000; //3;
 BC_CONSTEXPR size_t filesize = number_buckets * 12; //65536;
 
 unspent_database_v2::unspent_database_v2(path const& filename,
-    std::string const& mapname,
-    std::shared_ptr<shared_mutex> mutex)
-    // : lookup_map_(new record_map(filename.string(), filename.string(), number_buckets, filesize))
+    std::string const& mapname, std::shared_ptr<shared_mutex> mutex)
+    : filename_(filename.string())
+    , mapname_(mapname)
+    // : lookup_map_(new record_map(filename.string(), mapname, number_buckets, filesize))
 {
-    std::cout << "unspent_database_v2::unspent_database_v2(...)" << std::endl;
-    std::cout << "filename.string(): " << filename.string() << std::endl;
-
-    lookup_map_.reset(new record_map(filename.string(), mapname, number_buckets, filesize));
-
-    std::cout << "unspent_database_v2::unspent_database_v2(...) -- END" << std::endl;
+    // std::cout << "unspent_database_v2::unspent_database_v2(...)" << std::endl;
+    // std::cout << "filename.string(): " << filename.string() << std::endl;
+    // lookup_map_.reset(new record_map(filename.string(), mapname, number_buckets, filesize));
+    // std::cout << "unspent_database_v2::unspent_database_v2(...) -- END" << std::endl;
 }
 
 // // Close does not call stop because there is no way to detect thread join.
@@ -65,7 +65,9 @@ unspent_database_v2::unspent_database_v2(path const& filename,
 
 // Initialize files and start.
 bool unspent_database_v2::create() {
+    lookup_map_.reset(new record_map(filename.string(), mapname, number_buckets, filesize));
     return true;
+
     // //std::cout << "bool unspent_database_v2::create()\n";
     // // Resize and create require a started file.
     // if (!lookup_file_.start())

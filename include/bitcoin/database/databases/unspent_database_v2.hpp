@@ -104,6 +104,9 @@ private:
     using record_map = mem_hash_set<chain::point>;
     using record_map_ptr = std::unique_ptr<record_map>;
 
+    std::string filename_;
+    std::string mapname_;
+
     // // Hash table used for looking up inpoint spends by outpoint.
     // memory_map lookup_file_;
     // record_hash_table_header lookup_header_;
