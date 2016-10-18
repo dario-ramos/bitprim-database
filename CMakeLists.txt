@@ -137,8 +137,8 @@ add_library(bitprim-database ${MODE}
   src/databases/spend_database.cpp
   src/databases/stealth_database.cpp
   src/databases/transaction_database.cpp
-  # src/databases/unspent_database.cpp
-  src/databases/unspent_database_v2.cpp
+  src/databases/unspent_database.cpp
+  # src/databases/unspent_database_v2.cpp
   src/memory/accessor.cpp
   src/memory/allocator.cpp
   src/memory/memory_map.cpp
