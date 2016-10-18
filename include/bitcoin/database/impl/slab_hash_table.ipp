@@ -183,10 +183,12 @@ std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_first_
 
     if (current != header_.empty) {
         const slab_row<KeyType> item(manager_, current);
-        return {0, current, item.data()};
+        // return {0, current, item.data()};
+        return std::make_tuple(0, current, item.data());
     }
 
-    return {0, current, nullptr};
+    // return {0, current, nullptr};
+    return std::make_tuple(0, current, nullptr);
 }
 
 template <typename KeyType>
@@ -204,11 +206,13 @@ std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_i
     }
 
     if (current != header_.empty) {
-        return {bucket, current, item.data()};
+        // return {bucket, current, item.data()};
+        return std::make_tuple(bucket, current, item.data());
 
     }
 
-    return {bucket, current, nullptr};
+    // return {bucket, current, nullptr};
+    return std::make_tuple(bucket, current, nullptr);
 }
 
 
