@@ -31,8 +31,8 @@
 #include <bitcoin/database/databases/transaction_database.hpp>
 #include <bitcoin/database/databases/history_database.hpp>
 #include <bitcoin/database/databases/stealth_database.hpp>
-// #include <bitcoin/database/databases/unspent_database.hpp>
-#include <bitcoin/database/databases/unspent_database_v2.hpp>
+#include <bitcoin/database/databases/unspent_database.hpp>
+// #include <bitcoin/database/databases/unspent_database_v2.hpp>
 #include <bitcoin/database/define.hpp>
 #include <bitcoin/database/settings.hpp>
 
@@ -156,8 +156,8 @@ public:
     history_database history;
     spend_database spends;
 
-    // unspent_database unspents;
-    unspent_database_v2 unspents;
+    unspent_database unspents;
+    // unspent_database_v2 unspents;
     // std::unique_ptr<unspent_database_v2> unspents;
 
     stealth_database stealth;

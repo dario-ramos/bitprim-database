@@ -341,11 +341,11 @@ endif()
 
 # local: tools/unspent_db/unspent_db
 #------------------------------------------------------------------------------
-# if (WITH_TOOLS)
-#   add_executable(tools.unspent_db
-#     tools/unspent_db/unspent_db.cpp)
-#   target_link_libraries(tools.unspent_db bitprim-database)
-# endif()
+if (WITH_TOOLS)
+  add_executable(tools.unspent_db
+    tools/unspent_db/unspent_db.cpp)
+  target_link_libraries(tools.unspent_db bitprim-database)
+endif()
 
 # local: tools/build_utxo/build_utxo
 #------------------------------------------------------------------------------
