@@ -163,14 +163,16 @@ std::tuple<size_t, file_offset, transaction_result> transaction_database::get_fi
     // const auto memory = lookup_map_.get_first_item();
     const std::tuple<size_t, file_offset, memory_ptr> res = lookup_map_.get_first_item();
     const auto memory = std::get<2>(res);
-    return {std::get<0>(res), std::get<1>(res), transaction_result(memory)};
+    // return {std::get<0>(res), std::get<1>(res), transaction_result(memory)};
+    return std::make_tuple(std::get<0>(res), std::get<1>(res), transaction_result(memory));
 }
 
 std::tuple<size_t, file_offset, transaction_result> transaction_database::get_next_item(size_t bucket, file_offset current) const {
     // const auto memory = lookup_map_.get_first_item();
     const std::tuple<size_t, file_offset, memory_ptr> res = lookup_map_.get_next_item(bucket, current);
     const auto memory = std::get<2>(res);
-    return {std::get<0>(res), std::get<1>(res), transaction_result(memory)};
+    // return {std::get<0>(res), std::get<1>(res), transaction_result(memory)};
+    return std::make_tuple(std::get<0>(res), std::get<1>(res), transaction_result(memory));
 }
 
 
