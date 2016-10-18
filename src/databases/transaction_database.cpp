@@ -157,6 +157,7 @@ void transaction_database::sync()
 }
 
 // -------------- Fernando (remove) -------------------------
+#include <tuple>
 std::tuple<size_t, file_offset, transaction_result> transaction_database::get_first_item() const {
     
     // const auto memory = lookup_map_.get_first_item();
