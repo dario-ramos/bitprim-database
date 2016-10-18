@@ -347,6 +347,15 @@ endif()
 #   target_link_libraries(tools.unspent_db bitprim-database)
 # endif()
 
+# local: tools/build_utxo/build_utxo
+#------------------------------------------------------------------------------
+if (WITH_TOOLS)
+  add_executable(tools.build_utxo
+    tools/build_utxo/build_utxo.cpp)
+  target_link_libraries(tools.build_utxo bitprim-database)
+endif()
+
+
 # Install
 #==============================================================================
 install(TARGETS bitprim-database
