@@ -195,19 +195,20 @@ template <typename KeyType>
 std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_item(size_t bucket, file_offset current) const {
 
     // auto current = read_first_bucket_value();
-    auto item = slab_row<KeyType>(manager_, current);
+    // auto item = slab_row<KeyType>(manager_, current);
+    const slab_row<KeyType> item(manager_, current);
     const auto previous = current;
     current = item.next_position();
 
     if (current == header_.empty) {
         ++bucket;
         current = read_bucket_value_by_index(bucket);
-        item = slab_row<KeyType>(manager_, current);
+        // item = slab_row<KeyType>(manager_, current);
     }
 
     if (current != header_.empty) {
         // return {bucket, current, item.data()};
-        return std::make_tuple(bucket, current, item.data());
+        return std::make_tuple(bucket, current, slab_row<KeyType>(manager_, current).data());
 
     }
 
