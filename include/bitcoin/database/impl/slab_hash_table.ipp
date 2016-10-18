@@ -162,6 +162,56 @@ void slab_hash_table<KeyType>::release(const ListItem& item,
     previous_item.write_next_position(item.next_position());
 }
 
+
+// -------------- Fernando (remove) -------------------------
+template <typename KeyType>
+file_offset slab_hash_table<KeyType>::read_bucket_value_by_index(size_t bucket) const {
+    const auto value = header_.read(bucket);
+    static_assert(sizeof(value) == sizeof(file_offset), "Invalid size");
+    return value;
+}
+
+template <typename KeyType>
+file_offset slab_hash_table<KeyType>::read_first_bucket_value() const {
+    return read_bucket_value_by_index(0);
+}
+
+template <typename KeyType>
+std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_first_item() const {
+
+    auto current = read_first_bucket_value();
+
+    if (current != header_.empty) {
+        const slab_row<KeyType> item(manager_, current);
+        return {0, current, item.data()};
+    }
+
+    return {0, current, nullptr};
+}
+
+template <typename KeyType>
+std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_item(size_t bucket, file_offset current) const {
+
+    // auto current = read_first_bucket_value();
+    auto item = slab_row<KeyType>(manager_, current);
+    const auto previous = current;
+    current = item.next_position();
+
+    if (current == header_.empty) {
+        ++bucket;
+        current = read_bucket_value_by_index(bucket);
+        item = slab_row<KeyType>(manager_, current);
+    }
+
+    if (current != header_.empty) {
+        return {bucket, current, item.data()};
+
+    }
+
+    return {bucket, current, nullptr};
+}
+
+
 } // namespace database
 } // namespace libbitcoin
 

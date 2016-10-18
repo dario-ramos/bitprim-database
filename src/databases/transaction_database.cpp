@@ -156,5 +156,22 @@ void transaction_database::sync()
     lookup_manager_.sync();
 }
 
+// -------------- Fernando (remove) -------------------------
+std::tuple<size_t, file_offset, transaction_result> transaction_database::get_first_item() const {
+    
+    // const auto memory = lookup_map_.get_first_item();
+    const std::tuple<size_t, file_offset, memory_ptr> res = lookup_map_.get_first_item();
+    const auto memory = res.get<2>();
+    return {res.get<0>(), res.get<1>(), transaction_result(memory)};
+}
+
+std::tuple<size_t, file_offset, transaction_result> transaction_database::get_next_item(size_t bucket, file_offset current) const {
+    // const auto memory = lookup_map_.get_first_item();
+    const std::tuple<size_t, file_offset, memory_ptr> res = lookup_map_.get_next_item(bucket, current);
+    const auto memory = res.get<2>();
+    return {res.get<0>(), res.get<1>(), transaction_result(memory)};
+}
+
+
 } // namespace database
 } // namespace libbitcoin

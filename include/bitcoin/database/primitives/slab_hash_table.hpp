@@ -71,6 +71,13 @@ public:
     /// Delete a key-value pair from the hashtable by unlinking the node.
     bool unlink(const KeyType& key);
 
+    // -------------- Fernando (remove) -------------------------
+    file_offset read_bucket_value_by_index(size_t bucket) const;
+    file_offset read_first_bucket_value() const;
+    std::tuple<size_t, file_offset, memory_ptr> get_first_item() const;
+    std::tuple<size_t, file_offset, memory_ptr> get_next_item(size_t bucket, file_offset current) const;
+
+
 private:
 
     // What is the bucket given a hash.

@@ -77,6 +77,11 @@ public:
     /// Should be done at the end of every block write.
     void sync();
 
+
+    // -------------- Fernando (remove) -------------------------
+    std::tuple<size_t, file_offset, transaction_result> get_first_item() const;
+    std::tuple<size_t, file_offset, transaction_result> get_next_item(size_t bucket, file_offset current) const;
+
 private:
     typedef slab_hash_table<hash_digest> slab_map;
 
