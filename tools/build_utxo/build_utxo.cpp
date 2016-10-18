@@ -84,6 +84,7 @@ int main(int argc, char** argv) {
     string_list args;
     const std::string utxo_filename = argv[1];
     const std::string tx_filename = argv[2];
+    const std::string spend_filename = argv[3];
 
     for (int i = 3; i < argc; ++i)
         args.push_back(argv[i]);
@@ -95,6 +96,8 @@ int main(int argc, char** argv) {
 
     transaction_database tx_db(tx_filename);
     unspent_database utxo_db(utxo_filename);
+    spend_database spend_db(spend_filename);
+
 
     const auto utxo_db_create_result = utxo_db.create();
     BITCOIN_ASSERT(utxo_db_create_result);
@@ -102,6 +105,9 @@ int main(int argc, char** argv) {
     BITCOIN_ASSERT(tx_db_start_result);
     const auto utxo_db_start_result = utxo_db.start();
     BITCOIN_ASSERT(utxo_db_start_result);
+    const auto spend_db_start_result = spend_db.start();
+    BITCOIN_ASSERT(spend_db_start_result);
+
 
 
     auto item_data = tx_db.get_first_item();
@@ -118,16 +124,23 @@ int main(int argc, char** argv) {
 
         for (const auto& input: tx.inputs) {
 
-            // void store(chain::output_point const& outpoint);
-            utxo_db.store(input.previous_output);
-            utxo_db.sync();
+            const auto spend = spend_db.get(input.previous_output);
 
-            // input.to_data(sink);
-            // hash_digest hash;
-            // uint32_t index;
+            if (!spend.valid) {
+                std::cout << "Not found in Spend_DB, storing un UTXO DB: "
+                          << encode_hash(spend.hash) << ":" << spend.index << std::endl;
 
-            // input.previous_output.hash
-            // input.previous_output.index
+                // void store(chain::output_point const& outpoint);
+                utxo_db.store(input.previous_output);
+                utxo_db.sync();
+
+                // input.to_data(sink);
+                // hash_digest hash;
+                // uint32_t index;
+
+                // input.previous_output.hash
+                // input.previous_output.index
+            }
         }
 
 
