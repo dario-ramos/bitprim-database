@@ -48,7 +48,7 @@ public:
     chain::transaction transaction() const;
 
 private:
-    const memory_ptr slab_;
+    /*const*/ memory_ptr slab_;
 };
 
 } // namespace database

@@ -116,10 +116,6 @@ int main(int argc, char** argv) {
         std::cout << "index: " << result.index() << std::endl;
         std::cout << "tx: " << encode_base16(data) << std::endl;
 
-        // for (const auto& output: tx.outputs) {
-        //     output.to_data(sink);
-        // }
-
         for (const auto& input: tx.inputs) {
 
             // void store(chain::output_point const& outpoint);
