@@ -78,7 +78,7 @@ data_base::store::store(const path& prefix)
     spends_lookup = prefix / "spend_table";
 
     unspents_lookup = prefix / "unspent_table";
-    unspents_map = "unspent_table";
+    // unspents_map = "unspent_table";
 
     transactions_lookup = prefix / "transaction_table";
 
@@ -103,10 +103,8 @@ bool data_base::store::touch_all() const
         touch_file(history_rows) &&
         touch_file(stealth_rows) &&
         touch_file(spends_lookup) &&
+        touch_file(unspents_lookup) &&
         touch_file(transactions_lookup);
-
-        // touch_file(unspents_lookup) &&
-
 }
 
 data_base::file_lock data_base::initialize_lock(const path& lock)
@@ -152,7 +150,8 @@ data_base::data_base(const store& paths, size_t history_height,
     history(paths.history_lookup, paths.history_rows, mutex_),
     stealth(paths.stealth_rows, mutex_),
     spends(paths.spends_lookup, mutex_),
-    unspents(paths.unspents_lookup, paths.unspents_map, mutex_),
+    // unspents(paths.unspents_lookup, paths.unspents_map, mutex_),
+    unspents(paths.unspents_lookup, mutex_),
     transactions(paths.transactions_lookup, mutex_)
 {
 }
