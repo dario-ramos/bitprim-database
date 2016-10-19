@@ -217,10 +217,11 @@ std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_i
         std::cout << "current: " << current << std::endl;
 
         const slab_row<KeyType> item2(manager_, current);
-
         std::cout << "after creating item2" << std::endl;
+        auto item2_data = item2.data();
+        std::cout << "after calling data()" << std::endl;
 
-        return std::make_tuple(bucket, current, item2.data());
+        return std::make_tuple(bucket, current, item2_data);
 
     }
 
