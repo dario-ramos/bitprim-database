@@ -113,10 +113,19 @@ int main(int argc, char** argv) {
     auto item_data = tx_db.get_first_item();
 
     while (std::get<2>(item_data)) {
+
+        std::cout << "while - 1" << std::endl;
+
         auto result = std::get<2>(item_data);
 
+        std::cout << "while - 2" << std::endl;
+
         const auto tx = result.transaction();
+        std::cout << "while - 3" << std::endl;
         const data_chunk data = tx.to_data();
+        std::cout << "while - 4" << std::endl;
+
+
 
         std::cout << "height: " << result.height() << std::endl;
         // std::cout << "index: " << result.index() << std::endl;
