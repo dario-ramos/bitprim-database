@@ -114,6 +114,9 @@ int main(int argc, char** argv) {
     auto result = transaction_result(std::get<2>(item_data));
 
     while (result) {
+        std::cout << "height: " << result.height() << std::endl;
+        // std::cout << "index: " << result.index() << std::endl;
+        // std::cout << "tx: " << encode_base16(data) << std::endl;
 
         std::cout << "while - 1" << std::endl;
         const auto tx = result.transaction();
@@ -123,9 +126,6 @@ int main(int argc, char** argv) {
 
 
 
-        std::cout << "height: " << result.height() << std::endl;
-        // std::cout << "index: " << result.index() << std::endl;
-        // std::cout << "tx: " << encode_base16(data) << std::endl;
 
         for (const auto& input: tx.inputs) {
 
