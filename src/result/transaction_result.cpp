@@ -67,9 +67,17 @@ size_t transaction_result::index() const
 
 chain::transaction transaction_result::transaction() const
 {
+    std::cout << "transaction_result::transaction() - 1" << std::endl;
     BITCOIN_ASSERT(slab_);
+    std::cout << "transaction_result::transaction() - 2" << std::endl;
     const auto memory = REMAP_ADDRESS(slab_);
-    return deserialize_tx(memory + height_size + index_size);
+    std::cout << "transaction_result::transaction() - 3" << std::endl;
+    auto xxx = deserialize_tx(memory + height_size + index_size);
+    std::cout << "transaction_result::transaction() - 4" << std::endl;
+
+    return xxx;
+    // return deserialize_tx(memory + height_size + index_size);
+
     //// return deserialize_tx(memory + 8, size_limit_ - 8);
 }
 } // namespace database

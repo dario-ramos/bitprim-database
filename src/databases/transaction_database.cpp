@@ -158,37 +158,46 @@ void transaction_database::sync()
 
 // -------------- Fernando (remove) -------------------------
 #include <tuple>
-std::tuple<size_t, file_offset, transaction_result> transaction_database::get_first_item() const {
+
+std::tuple<size_t, file_offset, memory_ptr> transaction_database::get_first_item() const {
+    return lookup_map_.get_first_item();
+}
+
+std::tuple<size_t, file_offset, memory_ptr> transaction_database::get_next_item(size_t bucket, file_offset current) const {
+    return lookup_map_.get_next_item(bucket, current);
+}
+
+
+// std::tuple<size_t, file_offset, transaction_result> transaction_database::get_first_item() const {
     
-    // const auto memory = lookup_map_.get_first_item();
-    const std::tuple<size_t, file_offset, memory_ptr> res = lookup_map_.get_first_item();
-    const auto memory = std::get<2>(res);
-    // return {std::get<0>(res), std::get<1>(res), transaction_result(memory)};
-    return std::make_tuple(std::get<0>(res), std::get<1>(res), transaction_result(memory));
-}
+//     const std::tuple<size_t, file_offset, memory_ptr> res = lookup_map_.get_first_item();
+//     const auto memory = std::get<2>(res);
+//     return std::make_tuple(std::get<0>(res), std::get<1>(res), transaction_result(memory));
+// }
 
-std::tuple<size_t, file_offset, transaction_result> transaction_database::get_next_item(size_t bucket, file_offset current) const {
+// std::tuple<size_t, file_offset, transaction_result> transaction_database::get_next_item(size_t bucket, file_offset current) const {
 
-    std::cout << "transaction_database::get_next_item - 1" << std::endl;
+//     std::cout << "transaction_database::get_next_item - 1" << std::endl;
 
-    const std::tuple<size_t, file_offset, memory_ptr> res = lookup_map_.get_next_item(bucket, current);
+//     const std::tuple<size_t, file_offset, memory_ptr> res = lookup_map_.get_next_item(bucket, current);
 
-    std::cout << "transaction_database::get_next_item - 2" << std::endl;
+//     std::cout << "transaction_database::get_next_item - 2" << std::endl;
 
-    const auto memory = std::get<2>(res);
+//     const auto memory = std::get<2>(res);
 
-    std::cout << "transaction_database::get_next_item - 3" << std::endl;
+//     std::cout << "transaction_database::get_next_item - 3" << std::endl;
+//     std::cout << "memory: " << memory << std::endl;
 
-    auto tr = transaction_result(memory);
+//     auto tr = transaction_result(memory);
 
-    std::cout << "transaction_database::get_next_item - 4" << std::endl;
+//     std::cout << "transaction_database::get_next_item - 4" << std::endl;
 
-    auto tpl = std::make_tuple(std::get<0>(res), std::get<1>(res), tr);
+//     auto tpl = std::make_tuple(std::get<0>(res), std::get<1>(res), tr);
 
-    std::cout << "transaction_database::get_next_item - 5" << std::endl;
+//     std::cout << "transaction_database::get_next_item - 5" << std::endl;
 
-    return tpl;
-}
+//     return tpl;
+// }
 
 
 } // namespace database

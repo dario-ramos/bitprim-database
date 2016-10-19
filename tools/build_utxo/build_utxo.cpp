@@ -111,19 +111,15 @@ int main(int argc, char** argv) {
 
 
     auto item_data = tx_db.get_first_item();
+    auto result = transaction_result(std::get<2>(item_data));
 
-    while (std::get<2>(item_data)) {
+    while (result) {
 
         std::cout << "while - 1" << std::endl;
-
-        auto result = std::get<2>(item_data);
-
-        std::cout << "while - 2" << std::endl;
-
         const auto tx = result.transaction();
-        std::cout << "while - 3" << std::endl;
+        std::cout << "while - 2" << std::endl;
         const data_chunk data = tx.to_data();
-        std::cout << "while - 4" << std::endl;
+        std::cout << "while - 3" << std::endl;
 
 
 
@@ -160,6 +156,7 @@ int main(int argc, char** argv) {
         std::cout << "current_bucket: " << current_bucket << std::endl;
 
         item_data = tx_db.get_next_item(std::get<0>(item_data), std::get<1>(item_data));        
+        result = transaction_result(std::get<2>(item_data));
 
         current_bucket = std::get<0>(item_data);
         std::cout << "current_bucket: " << current_bucket << std::endl;
