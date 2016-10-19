@@ -213,8 +213,14 @@ std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_i
 
     if (current != header_.empty) {
         std::cout << "get_next_item() - 3\n";
-        // return {bucket, current, item.data()};
-        return std::make_tuple(bucket, current, slab_row<KeyType>(manager_, current).data());
+        std::cout << "bucket: " << bucket << std::endl;
+        std::cout << "current: " << current << std::endl;
+
+        const slab_row<KeyType> item2(manager_, current);
+
+        std::cout << "after creating item2" << std::endl;
+
+        return std::make_tuple(bucket, current, item2.data());
 
     }
 
