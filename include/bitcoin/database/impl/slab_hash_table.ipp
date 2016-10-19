@@ -221,8 +221,9 @@ std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_i
         auto item2_data = item2.data();
         std::cout << "after calling data()" << std::endl;
 
-        return std::make_tuple(bucket, current, item2_data);
-
+        auto tpl = std::make_tuple(bucket, current, item2_data);
+        std::cout << "after creating the tuple" << std::endl;
+        return tpl;
     }
 
     std::cout << "get_next_item() - 4\n";
