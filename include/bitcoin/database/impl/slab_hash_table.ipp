@@ -199,9 +199,12 @@ std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_i
     const slab_row<KeyType> item(manager_, current);
     current = item.next_position();
 
+
+
+
     std::cout << "get_next_item() - 1\n";
 
-    if (current == header_.empty) {
+    while (current == header_.empty && bucket != header_.size()) {
         std::cout << "get_next_item() - 2\n";
         ++bucket;
         current = read_bucket_value_by_index(bucket);
@@ -217,8 +220,33 @@ std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_i
 
     std::cout << "get_next_item() - 4\n";
 
-    // return {bucket, current, nullptr};
+
     return std::make_tuple(bucket, current, nullptr);
+
+
+
+
+
+    // std::cout << "get_next_item() - 1\n";
+
+    // if (current == header_.empty) {
+    //     std::cout << "get_next_item() - 2\n";
+    //     ++bucket;
+    //     current = read_bucket_value_by_index(bucket);
+    //     // item = slab_row<KeyType>(manager_, current);
+    // }
+
+    // if (current != header_.empty) {
+    //     std::cout << "get_next_item() - 3\n";
+    //     // return {bucket, current, item.data()};
+    //     return std::make_tuple(bucket, current, slab_row<KeyType>(manager_, current).data());
+
+    // }
+
+    // std::cout << "get_next_item() - 4\n";
+
+
+    // return std::make_tuple(bucket, current, nullptr);
 }
 
 
