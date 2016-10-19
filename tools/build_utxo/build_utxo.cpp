@@ -119,8 +119,8 @@ int main(int argc, char** argv) {
         const data_chunk data = tx.to_data();
 
         std::cout << "height: " << result.height() << std::endl;
-        std::cout << "index: " << result.index() << std::endl;
-        std::cout << "tx: " << encode_base16(data) << std::endl;
+        // std::cout << "index: " << result.index() << std::endl;
+        // std::cout << "tx: " << encode_base16(data) << std::endl;
 
         for (const auto& input: tx.inputs) {
 
@@ -140,10 +140,11 @@ int main(int argc, char** argv) {
 
                 // input.previous_output.hash
                 // input.previous_output.index
-            } else {
-                std::cout << "Found in Spend_DB, ignoring: "
-                          << encode_hash(spend.hash) << ":" << spend.index << std::endl;
-            }
+            } 
+            // else {
+            //     std::cout << "Found in Spend_DB, ignoring: "
+            //               << encode_hash(spend.hash) << ":" << spend.index << std::endl;
+            // }
         }
 
 
@@ -154,11 +155,7 @@ int main(int argc, char** argv) {
     auto file_offset = std::get<1>(item_data);
     auto tx_result = std::get<2>(item_data);
     auto tx_result_valid = bool(tx_result);
-
-
     std::cout << "tx_result_valid: " << tx_result_valid << std::endl;
-    std::cout << "bucket: " << bucket << std::endl;
-    std::cout << "bucket: " << bucket << std::endl;
     std::cout << "bucket: " << bucket << std::endl;
 
     // if (command == "initialize_new")
