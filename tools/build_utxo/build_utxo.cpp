@@ -132,12 +132,14 @@ int main(int argc, char** argv) {
                 std::cout << "Not found in Spend_DB, storing un UTXO DB: "
                           << encode_hash(spend.hash) << ":" << spend.index 
                           << " - bucket: " << std::get<0>(item_data)
-                          << std::endl;
+                          << " - utxo_size: " << utxo_size
+                          << '\n';
 
                 utxo_db.store(input.previous_output);
                 ++utxo_size;
 
                 if (utxo_size % 1000 == 0) {
+                    std::cout << "Flushing utxo_db...\n";
                     utxo_db.sync();    
                 }
                 
