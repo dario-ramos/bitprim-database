@@ -26,10 +26,7 @@
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database/define.hpp>
-// #include <bitcoin/database/primitives/record_hash_table_set.hpp>
  #include <bitcoin/database/primitives/mem_hash_set.hpp>
-// #include <bitcoin/database/memory/memory_map.hpp>
-
 
 namespace boost {
 
@@ -107,10 +104,6 @@ private:
     std::string filename_;
     std::string mapname_;
 
-    // // Hash table used for looking up inpoint spends by outpoint.
-    // memory_map lookup_file_;
-    // record_hash_table_header lookup_header_;
-    // record_manager lookup_manager_;
     record_map_ptr lookup_map_;
     mutable shared_mutex mutex_;
 };
