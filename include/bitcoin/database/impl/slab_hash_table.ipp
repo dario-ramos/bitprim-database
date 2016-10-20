@@ -194,67 +194,35 @@ std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_first_
 template <typename KeyType>
 std::tuple<size_t, file_offset, memory_ptr> slab_hash_table<KeyType>::get_next_item(size_t bucket, file_offset current) const {
 
-    // auto current = read_first_bucket_value();
-    // auto item = slab_row<KeyType>(manager_, current);
     const slab_row<KeyType> item(manager_, current);
     current = item.next_position();
 
-
-
-
-    std::cout << "get_next_item() - 1\n";
+    // std::cout << "get_next_item() - 1\n";
 
     while (current == header_.empty && bucket != header_.size()) {
-        std::cout << "get_next_item() - 2\n";
+        // std::cout << "get_next_item() - 2\n";
         ++bucket;
         current = read_bucket_value_by_index(bucket);
         // item = slab_row<KeyType>(manager_, current);
     }
 
     if (current != header_.empty) {
-        std::cout << "get_next_item() - 3\n";
-        std::cout << "bucket: " << bucket << std::endl;
-        std::cout << "current: " << current << std::endl;
+        // std::cout << "get_next_item() - 3\n";
+        // std::cout << "bucket: " << bucket << std::endl;
+        // std::cout << "current: " << current << std::endl;
 
         const slab_row<KeyType> item2(manager_, current);
-        std::cout << "after creating item2" << std::endl;
+        // std::cout << "after creating item2" << std::endl;
         auto item2_data = item2.data();
-        std::cout << "after calling data()" << std::endl;
+        // std::cout << "after calling data()" << std::endl;
 
         auto tpl = std::make_tuple(bucket, current, item2_data);
-        std::cout << "after creating the tuple" << std::endl;
+        // std::cout << "after creating the tuple" << std::endl;
         return tpl;
     }
 
-    std::cout << "get_next_item() - 4\n";
-
-
-    return std::make_tuple(bucket, current, nullptr);
-
-
-
-
-
-    // std::cout << "get_next_item() - 1\n";
-
-    // if (current == header_.empty) {
-    //     std::cout << "get_next_item() - 2\n";
-    //     ++bucket;
-    //     current = read_bucket_value_by_index(bucket);
-    //     // item = slab_row<KeyType>(manager_, current);
-    // }
-
-    // if (current != header_.empty) {
-    //     std::cout << "get_next_item() - 3\n";
-    //     // return {bucket, current, item.data()};
-    //     return std::make_tuple(bucket, current, slab_row<KeyType>(manager_, current).data());
-
-    // }
-
     // std::cout << "get_next_item() - 4\n";
-
-
-    // return std::make_tuple(bucket, current, nullptr);
+    return std::make_tuple(bucket, current, nullptr);
 }
 
 

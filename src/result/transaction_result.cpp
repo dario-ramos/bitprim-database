@@ -35,13 +35,9 @@ static constexpr size_t index_size = sizeof(uint32_t);
 template <typename Iterator>
 chain::transaction deserialize_tx(const Iterator first)
 {
-    std::cout << "deserialize_tx() - 1" << std::endl;
     chain::transaction tx;
-    std::cout << "deserialize_tx() - 2" << std::endl;
     auto deserial = make_deserializer_unsafe(first);
-    std::cout << "deserialize_tx() - 3" << std::endl;
     tx.from_data(deserial);
-    std::cout << "deserialize_tx() - 4" << std::endl;
     return tx;
 }
 
@@ -71,22 +67,9 @@ size_t transaction_result::index() const
 
 chain::transaction transaction_result::transaction() const
 {
-    std::cout << "transaction_result::transaction() - 1" << std::endl;
     BITCOIN_ASSERT(slab_);
-    std::cout << "transaction_result::transaction() - 2" << std::endl;
     const auto memory = REMAP_ADDRESS(slab_);
-    std::cout << "transaction_result::transaction() - 3" << std::endl;
-
-    std::cout << "memory:      " << memory << std::endl;
-    std::cout << "height_size: " << height_size << std::endl;
-    std::cout << "index_size:  " << index_size << std::endl;
-
-    auto xxx = deserialize_tx(memory + height_size + index_size);
-    std::cout << "transaction_result::transaction() - 4" << std::endl;
-
-    return xxx;
-    // return deserialize_tx(memory + height_size + index_size);
-
+    return deserialize_tx(memory + height_size + index_size);
     //// return deserialize_tx(memory + 8, size_limit_ - 8);
 }
 } // namespace database

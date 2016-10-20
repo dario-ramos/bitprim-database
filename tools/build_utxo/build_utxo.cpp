@@ -113,18 +113,15 @@ int main(int argc, char** argv) {
     auto item_data = tx_db.get_first_item();
     auto result = transaction_result(std::get<2>(item_data));
 
+    size_t utxo_size = 0;
+
     while (result) {
-        std::cout << "height: " << result.height() << std::endl;
+        // std::cout << "height: " << result.height() << std::endl;
         // std::cout << "index: " << result.index() << std::endl;
         // std::cout << "tx: " << encode_base16(data) << std::endl;
 
-        std::cout << "while - 1" << std::endl;
         const auto tx = result.transaction();
-        std::cout << "while - 2" << std::endl;
         const data_chunk data = tx.to_data();
-        std::cout << "while - 3" << std::endl;
-
-
 
 
         for (const auto& input: tx.inputs) {
@@ -133,34 +130,24 @@ int main(int argc, char** argv) {
 
             if (!spend.valid) {
                 std::cout << "Not found in Spend_DB, storing un UTXO DB: "
-                          << encode_hash(spend.hash) << ":" << spend.index << std::endl;
+                          << encode_hash(spend.hash) << ":" << spend.index 
+                          << " - bucket: " << std::get<0>(item_data)
+                          << std::endl;
 
-                // void store(chain::output_point const& outpoint);
                 utxo_db.store(input.previous_output);
-                utxo_db.sync();
+                ++utxo_size;
 
-                // input.to_data(sink);
-                // hash_digest hash;
-                // uint32_t index;
-
-                // input.previous_output.hash
-                // input.previous_output.index
+                if (utxo_size % 1000 == 0) {
+                    utxo_db.sync();    
+                }
+                
             } 
-            // else {
-            //     std::cout << "Found in Spend_DB, ignoring: "
-            //               << encode_hash(spend.hash) << ":" << spend.index << std::endl;
-            // }
         }
-
-        auto current_bucket = std::get<0>(item_data);
-        std::cout << "current_bucket: " << current_bucket << std::endl;
-
         item_data = tx_db.get_next_item(std::get<0>(item_data), std::get<1>(item_data));        
         result = transaction_result(std::get<2>(item_data));
-
-        current_bucket = std::get<0>(item_data);
-        std::cout << "current_bucket: " << current_bucket << std::endl;
     }
+
+    utxo_db.sync();    
 
     auto bucket = std::get<0>(item_data);
     auto file_offset = std::get<1>(item_data);
@@ -168,103 +155,6 @@ int main(int argc, char** argv) {
     auto tx_result_valid = bool(tx_result);
     std::cout << "tx_result_valid: " << tx_result_valid << std::endl;
     std::cout << "bucket: " << bucket << std::endl;
-
-    // if (command == "initialize_new")
-    // {
-    //     const auto result = db.create();
-    //     BITCOIN_ASSERT(result);
-    // }
-    // else if (command == "get")
-    // {
-    //     if (args.size() != 1)
-    //     {
-    //         show_command_help(command);
-    //         return -1;
-    //     }
-
-    //     hash_digest hash;
-    //     if (!decode_hash(hash, args[0]))
-    //     {
-    //         std::cerr << "Couldn't read transaction hash." << std::endl;
-    //         return -1;
-    //     }
-
-    //     db.start();
-    //     auto result = db.get(hash);
-    //     if (!result)
-    //     {
-    //         std::cout << "Not found!" << std::endl;
-    //         return -1;
-    //     }
-
-    //     const data_chunk data = result.transaction().to_data();
-
-    //     std::cout << "height: " << result.height() << std::endl;
-    //     std::cout << "index: " << result.index() << std::endl;
-    //     std::cout << "tx: " << encode_base16(data) << std::endl;
-    // }
-    // else if (command == "store")
-    // {
-    //     if (args.size() != 3)
-    //     {
-    //         show_command_help(command);
-    //         return -1;
-    //     }
-
-    //     size_t height;
-    //     if (!parse_uint(height, args[0]))
-    //         return -1;
-
-    //     size_t index;
-    //     if (!parse_uint(index, args[1]))
-    //         return -1;
-
-    //     data_chunk data;
-    //     if (!decode_base16(data, argv[2]))
-    //     {
-    //         std::cerr << "data is not valid" << std::endl;
-    //         return -1;
-    //     }
-
-    //     chain::transaction tx;
-    //     if (!tx.from_data(data))
-    //         throw end_of_stream();
-
-    //     const auto result = db.start();
-    //     BITCOIN_ASSERT(result);
-
-    //     db.store(height, index, tx);
-    //     db.sync();
-    // }
-    // else if (command == "remove")
-    // {
-    //     if (args.size() != 1)
-    //     {
-    //         show_command_help(command);
-    //         return -1;
-    //     }
-
-    //     hash_digest hash;
-    //     if (!decode_hash(hash, args[0]))
-    //     {
-    //         std::cerr << "Couldn't read transaction hash." << std::endl;
-    //         return -1;
-    //     }
-
-    //     const auto result = db.start();
-    //     BITCOIN_ASSERT(result);
-
-    //     db.remove(hash);
-    //     db.sync();
-    // }
-    // else
-    // {
-    //     std::cout << "build_utxo: '" << command
-    //         << "' is not a build_utxo command. "
-    //         << "See 'build_utxo --help'." << std::endl;
-    //     return -1;
-    // }
-
 
     return 0;
 }
