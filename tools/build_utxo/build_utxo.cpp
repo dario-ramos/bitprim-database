@@ -89,10 +89,7 @@ int main(int argc, char** argv) {
     for (int i = 3; i < argc; ++i)
         args.push_back(argv[i]);
 
-    // if (command == "initialize_new")
-    //     data_base::touch_file(tx_filename);
-
-    data_base::touch_file(utxo_filename);
+    // data_base::touch_file(utxo_filename);
 
     transaction_database tx_db(tx_filename);
     // unspent_database utxo_db(utxo_filename);
