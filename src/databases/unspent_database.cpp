@@ -116,6 +116,17 @@ bool unspent_database::contains(output_point const& outpoint) const
 
 void unspent_database::store(chain::output_point const& outpoint)
 {
+
+    if (encode_hash(outpoint.hash) == "b6af26bf360c141937de55a88ef8033852c372d188d38863a3e0ec1c71bd63eb" && 
+        outpoint.index == 1) {
+
+        std::cout << "unspent_database::store() ";
+                  << " - outpoint.hash:   " << encode_hash(outpoint.hash) << '\n';
+                  << " - outpoint.index:  " << outpoint.index << '\n';
+    }
+
+
+
     // std::cout << "void unspent_database::store(chain::output_point const& outpoint)\n";
     std::cout << "unspent_database::store  lookup_manager_.count(): " << lookup_manager_.count() << "\n";
     lookup_map_.store(outpoint);
@@ -124,6 +135,15 @@ void unspent_database::store(chain::output_point const& outpoint)
 
 void unspent_database::remove(output_point const& outpoint)
 {
+
+    if (encode_hash(outpoint.hash) == "b6af26bf360c141937de55a88ef8033852c372d188d38863a3e0ec1c71bd63eb" && 
+        outpoint.index == 1) {
+
+        std::cout << "unspent_database::remove() ";
+                  << " - outpoint.hash:   " << encode_hash(outpoint.hash) << '\n';
+                  << " - outpoint.index:  " << outpoint.index << '\n';
+    }
+    
     // std::cout << "void unspent_database::remove(output_point const& outpoint)\n";
     // auto contains = lookup_map_.contains(outpoint);
     // std::cout << "contains: " << contains << "\n";
