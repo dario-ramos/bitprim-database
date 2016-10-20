@@ -125,25 +125,26 @@ int main(int argc, char** argv) {
 
 
         for (const auto& input: tx.inputs) {
+            if (input.previous_output.hash != null_hash) {
+                const auto spend = spend_db.get(input.previous_output);
 
-            const auto spend = spend_db.get(input.previous_output);
+                if (!spend.valid) {
+                    std::cout << "Not found in Spend_DB, storing un UTXO DB: "
+                              << encode_hash(input.previous_output.hash) << ":" << input.previous_output.index 
+                              << " - bucket: " << std::get<0>(item_data)
+                              << " - utxo_size: " << utxo_size
+                              << '\n';
 
-            if (!spend.valid) {
-                std::cout << "Not found in Spend_DB, storing un UTXO DB: "
-                          << encode_hash(spend.hash) << ":" << spend.index 
-                          << " - bucket: " << std::get<0>(item_data)
-                          << " - utxo_size: " << utxo_size
-                          << '\n';
+                    utxo_db.store(input.previous_output);
+                    ++utxo_size;
 
-                utxo_db.store(input.previous_output);
-                ++utxo_size;
-
-                if (utxo_size % 1000 == 0) {
-                    std::cout << "Flushing utxo_db...\n";
-                    utxo_db.sync();    
-                }
-                
-            } 
+                    if (utxo_size % 1000 == 0) {
+                        std::cout << "Flushing utxo_db...\n";
+                        utxo_db.sync();    
+                    }
+                    
+                }                 
+            }
         }
         item_data = tx_db.get_next_item(std::get<0>(item_data), std::get<1>(item_data));        
         result = transaction_result(std::get<2>(item_data));
