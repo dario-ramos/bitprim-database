@@ -130,18 +130,15 @@ int main(int argc, char** argv) {
         for (const auto& input: tx.inputs) {
             if (input.previous_output.hash != null_hash) {
 
-                // std::cout << "Checking: "
-                //           << encode_hash(input.previous_output.hash) << ":" << input.previous_output.index 
-                //           << '\n';
+                // const auto spend = spend_db.get(input.previous_output);
 
-                const auto spend = spend_db.get(input.previous_output);
-
-                if (!spend.valid) {
-                    std::cout << "Not found in Spend_DB, storing un UTXO DB: "
-                              << encode_hash(input.previous_output.hash) << ":" << input.previous_output.index 
-                              << " - bucket: " << bucket
-                              << " - utxo_size: " << utxo_size
-                              << '\n';
+                // if (!spend.valid) {
+                if (true) {
+                    // std::cout << "Not found in Spend_DB, storing un UTXO DB: "
+                    //           << encode_hash(input.previous_output.hash) << ":" << input.previous_output.index 
+                    //           << " - bucket: " << bucket
+                    //           << " - utxo_size: " << utxo_size
+                    //           << '\n';
 
                     utxo_db.store(input.previous_output);
                     ++utxo_size;
