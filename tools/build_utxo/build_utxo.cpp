@@ -122,16 +122,25 @@ int main(int argc, char** argv) {
 
         const auto tx = result.transaction();
         const data_chunk data = tx.to_data();
+        auto bucket = std::get<0>(item_data);
 
+        if (bucket % 1000 == 0) {
+            std::cout << "bucket: " << bucket << '\n';
+        }
 
         for (const auto& input: tx.inputs) {
             if (input.previous_output.hash != null_hash) {
+
+                std::cout << "Checking: "
+                          << encode_hash(input.previous_output.hash) << ":" << input.previous_output.index 
+                          << '\n';
+
                 const auto spend = spend_db.get(input.previous_output);
 
                 if (!spend.valid) {
                     std::cout << "Not found in Spend_DB, storing un UTXO DB: "
                               << encode_hash(input.previous_output.hash) << ":" << input.previous_output.index 
-                              << " - bucket: " << std::get<0>(item_data)
+                              << " - bucket: " << bucket
                               << " - utxo_size: " << utxo_size
                               << '\n';
 
@@ -142,11 +151,11 @@ int main(int argc, char** argv) {
                         std::cout << "Flushing utxo_db...\n";
                         utxo_db.sync();    
                     }
-                    
                 }                 
             }
         }
-        item_data = tx_db.get_next_item(std::get<0>(item_data), std::get<1>(item_data));        
+
+        item_data = tx_db.get_next_item(bucket, std::get<1>(item_data));        
         result = transaction_result(std::get<2>(item_data));
     }
 
