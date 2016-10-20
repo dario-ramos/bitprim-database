@@ -131,9 +131,9 @@ int main(int argc, char** argv) {
         for (const auto& input: tx.inputs) {
             if (input.previous_output.hash != null_hash) {
 
-                std::cout << "Checking: "
-                          << encode_hash(input.previous_output.hash) << ":" << input.previous_output.index 
-                          << '\n';
+                // std::cout << "Checking: "
+                //           << encode_hash(input.previous_output.hash) << ":" << input.previous_output.index 
+                //           << '\n';
 
                 const auto spend = spend_db.get(input.previous_output);
 
