@@ -366,7 +366,7 @@ void data_base::push(const block& block, uint64_t height)
 void data_base::push_inputs(const hash_digest& tx_hash, size_t height,
     const input::list& inputs)
 {
-    // std::cout << "void data_base::push_inputs(const hash_digest& tx_hash, size_t height, const input::list& inputs)\n";
+    std::cout << "FER - void data_base::push_inputs(const hash_digest& tx_hash, size_t height, const input::list& inputs)\n";
 
     for (uint32_t index = 0; index < inputs.size(); ++index)
     {
@@ -387,11 +387,16 @@ void data_base::push_inputs(const hash_digest& tx_hash, size_t height,
         const auto& previous = input.previous_output;
         history.add_input(address.hash(), point, height, previous);
     }
+
+    std::cout << "FER - void data_base::push_inputs(const hash_digest& tx_hash, size_t height, const input::list& inputs) - END\n";
+
 }
 
 void data_base::push_outputs(const hash_digest& tx_hash, size_t height,
     const output::list& outputs)
 {
+    std::cout << "FER - void data_base::push_outputs(const hash_digest& tx_hash, size_t height, const output::list& outputs)\n";
+
     if (height < history_height_)
         return;
 
@@ -410,11 +415,17 @@ void data_base::push_outputs(const hash_digest& tx_hash, size_t height,
         const auto value = output.value;
         history.add_output(address.hash(), point, height, value);
     }
+
+    std::cout << "FER - void data_base::push_outputs(const hash_digest& tx_hash, size_t height, const output::list& outputs) - END\n";
+
 }
 
 void data_base::push_stealth(const hash_digest& tx_hash, size_t height,
     const output::list& outputs)
 {
+
+    // std::cout << "void data_base::push_stealth(const hash_digest& tx_hash, size_t height, const output::list& outputs)\n";
+
     if (height < stealth_height_ || outputs.empty())
         return;
 
@@ -449,6 +460,9 @@ void data_base::push_stealth(const hash_digest& tx_hash, size_t height,
 
         stealth.store(prefix, height, row);
     }
+
+    // std::cout << "void data_base::push_stealth(const hash_digest& tx_hash, size_t height, const output::list& outputs) - END\n";
+
 }
 
 chain::block data_base::pop()
@@ -505,6 +519,8 @@ chain::block data_base::pop()
 
 void data_base::pop_inputs(const input::list& inputs, size_t height)
 {
+    std::cout << "FER -- void data_base::pop_inputs(const input::list& inputs, size_t height)\n";
+
     // Loop in reverse.
     for (auto input = inputs.rbegin(); input != inputs.rend(); ++input)
     {
@@ -520,6 +536,7 @@ void data_base::pop_inputs(const input::list& inputs, size_t height)
         if (address)
             history.delete_last_row(address.hash());
     }
+    std::cout << "FER -- void data_base::pop_inputs(const input::list& inputs, size_t height) - END\n";
 }
 
 // void data_base::pop_outputs(const output::list& outputs, size_t height)
@@ -527,7 +544,7 @@ void data_base::pop_outputs(hash_digest const& tx_hash, size_t height,
     output::list const& outputs)
 {
     //TODO Fer: cuando se llama a esto?
-    // std::cout << "FER -- void data_base::pop_outputs(hash_digest const& tx_hash, size_t height, output::list const& outputs)\n";
+    std::cout << "FER -- void data_base::pop_outputs(hash_digest const& tx_hash, size_t height, output::list const& outputs)\n";
 
     if (height < history_height_)
         return;
@@ -557,7 +574,10 @@ void data_base::pop_outputs(hash_digest const& tx_hash, size_t height,
 
         if (address)
             history.delete_last_row(address.hash());
-    }    
+    }
+
+    std::cout << "FER -- void data_base::pop_outputs(hash_digest const& tx_hash, size_t height, output::list const& outputs) - END\n";
+  
 }
 
 } // namespace data_base
