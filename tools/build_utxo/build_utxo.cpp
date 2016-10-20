@@ -95,7 +95,9 @@ int main(int argc, char** argv) {
     data_base::touch_file(utxo_filename);
 
     transaction_database tx_db(tx_filename);
-    unspent_database_v2 utxo_db(utxo_filename);
+    // unspent_database utxo_db(utxo_filename);
+    // unspents(paths.unspents_lookup, paths.unspents_map, mutex_),
+    unspent_database_v2 utxo_db(utxo_filename, "unspent_table");
     spend_database spend_db(spend_filename);
 
 
