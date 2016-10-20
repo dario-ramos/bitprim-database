@@ -158,8 +158,8 @@ public:
     history_database history;
     spend_database spends;
 
-    unspent_database unspents;
-    // unspent_database_v2 unspents;
+    //unspent_database unspents;
+    unspent_database_v2 unspents;
     // std::unique_ptr<unspent_database_v2> unspents;
 
     stealth_database stealth;
