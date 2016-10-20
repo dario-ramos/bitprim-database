@@ -75,7 +75,7 @@ data_base::store::store(const path& prefix)
     // Hash-based lookup (hash tables).
     blocks_lookup = prefix / "block_table";
     history_lookup = prefix / "history_table";
-    spends_lookup = prefix / "spend_table";
+    //spends_lookup = prefix / "spend_table";
 
     unspents_lookup = prefix / "unspent_table";
     unspents_map = "unspent_table";
@@ -102,7 +102,7 @@ bool data_base::store::touch_all() const
         touch_file(history_lookup) &&
         touch_file(history_rows) &&
         touch_file(stealth_rows) &&
-        touch_file(spends_lookup) &&
+        //touch_file(spends_lookup) &&
         touch_file(transactions_lookup);
 
         // touch_file(unspents_lookup) &&
@@ -150,7 +150,7 @@ data_base::data_base(const store& paths, size_t history_height,
     blocks(paths.blocks_lookup, paths.blocks_index, mutex_),
     history(paths.history_lookup, paths.history_rows, mutex_),
     stealth(paths.stealth_rows, mutex_),
-    spends(paths.spends_lookup, mutex_),
+    //spends(paths.spends_lookup, mutex_),
     unspents(paths.unspents_lookup, paths.unspents_map, mutex_),
     // unspents(paths.unspents_lookup, mutex_),
     transactions(paths.transactions_lookup, mutex_)
@@ -176,7 +176,7 @@ bool data_base::create()
     return 
         blocks.create() &&
         history.create() &&
-        spends.create() &&
+        //spends.create() &&
         unspents.create() &&
         stealth.create() &&
         transactions.create();
@@ -204,7 +204,7 @@ bool data_base::start()
     const auto start_result =
         blocks.start() &&
         history.start() &&
-        spends.start() &&
+        //spends.start() &&
         unspents.start() &&
         stealth.start() &&
         transactions.start();
@@ -220,7 +220,7 @@ bool data_base::stop()
     const auto start_exclusive = begin_write();
     const auto blocks_stop = blocks.stop();
     const auto history_stop = history.stop();
-    const auto spends_stop = spends.stop();
+    //const auto spends_stop = spends.stop();
     const auto unspents_stop = unspents.stop();
     const auto stealth_stop = stealth.stop();
     const auto transactions_stop = transactions.stop();
@@ -236,7 +236,7 @@ bool data_base::stop()
         start_exclusive &&
         blocks_stop &&
         history_stop &&
-        spends_stop &&
+        //spends_stop &&
         unspents_stop &&
         stealth_stop &&
         transactions_stop &&
@@ -248,7 +248,7 @@ bool data_base::close()
 {
     const auto blocks_close = blocks.close();
     const auto history_close = history.close();
-    const auto spends_close = spends.close();
+    //const auto spends_close = spends.close();
     const auto unspents_close = unspents.close();
     const auto stealth_close = stealth.close();
     const auto transactions_close = transactions.close();
@@ -257,7 +257,7 @@ bool data_base::close()
     return
         blocks_close &&
         history_close &&
-        spends_close &&
+        //spends_close &&
         unspents_close &&
         stealth_close &&
         transactions_close;
@@ -316,7 +316,7 @@ static bool is_allowed_duplicate(const header& head, size_t height)
 
 void data_base::synchronize()
 {
-    spends.sync();
+    //spends.sync();
     unspents.sync();
     history.sync();
     stealth.sync();
@@ -373,7 +373,7 @@ void data_base::push_inputs(const hash_digest& tx_hash, size_t height,
         // We also push spends in the inputs loop.
         const auto& input = inputs[index];
         const chain::input_point point{ tx_hash, index };
-        spends.store(input.previous_output, point);
+        //spends.store(input.previous_output, point);
         unspents.remove(input.previous_output);
 
         if (height < history_height_)
@@ -524,7 +524,7 @@ void data_base::pop_inputs(const input::list& inputs, size_t height)
     // Loop in reverse.
     for (auto input = inputs.rbegin(); input != inputs.rend(); ++input)
     {
-        spends.remove(input->previous_output);
+        //spends.remove(input->previous_output);
         unspents.store(input->previous_output);
 
         if (height < history_height_)

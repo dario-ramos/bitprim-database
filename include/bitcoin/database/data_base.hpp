@@ -60,7 +60,7 @@ public:
         path history_lookup;
         path history_rows;
         path stealth_rows;
-        path spends_lookup;
+        // path spends_lookup;
         path unspents_lookup;
         path transactions_lookup;
         std::string unspents_map;
@@ -156,7 +156,7 @@ public:
     /// Individual database query engines.
     block_database blocks;
     history_database history;
-    spend_database spends;
+    // spend_database spends;
 
     //unspent_database unspents;
     unspent_database_v2 unspents;
