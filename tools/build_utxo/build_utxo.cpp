@@ -143,7 +143,8 @@ int main(int argc, char** argv) {
                     utxo_db.store(input.previous_output);
                     ++utxo_size;
 
-                    if (utxo_size % 1000 == 0) {
+                    // if (utxo_size % 1000 == 0) {
+                    if (utxo_size % 100000 == 0) {
                         std::cout << "Flushing utxo_db...\n";
                         utxo_db.sync();    
                     }
