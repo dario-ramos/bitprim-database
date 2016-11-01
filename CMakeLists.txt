@@ -358,6 +358,15 @@ if (WITH_TOOLS)
 endif()
 
 
+# local: tools/check_scripts/check_scripts
+#------------------------------------------------------------------------------
+if (WITH_TOOLS)
+  add_executable(tools.check_scripts
+    tools/check_scripts/check_scripts.cpp)
+  target_link_libraries(tools.check_scripts bitprim-database)
+endif()
+
+
 # Install
 #==============================================================================
 install(TARGETS bitprim-database

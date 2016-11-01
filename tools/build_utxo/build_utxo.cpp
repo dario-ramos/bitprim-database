@@ -55,6 +55,20 @@ bool parse_uint(Uint& value, const std::string& arg) {
     return true;
 }
 
+
+
+// typedef std::vector<uint8_t> data_chunk;
+// typedef array_slice<uint8_t> data_slice;
+// hash_digest bitcoin_hash(data_slice data)
+// {
+//     return sha256_hash(sha256_hash(data));
+// }
+
+
+
+
+
+
 int main(int argc, char** argv) {
 
     typedef std::vector<std::string> string_list;
