@@ -2,6 +2,10 @@
 //  cd /opt/libbitcoin3
 //  /opt/devel/bitprim-cmake/bitprim-build/build/bitprim-database/tools.check_scripts mainnet-blockchain/block_table mainnet-blockchain/block_index mainnet-blockchain/transaction_table
 
+#include <cstddef> //std::size_t
+
+
+
     
 
 #include <iostream>
