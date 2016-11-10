@@ -76,8 +76,8 @@ public:
 
     const transaction_database& transactions() const;
 
-    // /// Invalid if indexes not initialized.
-    // const spend_database& spends() const;
+    /// Invalid if indexes not initialized.
+    const spend_database& spends() const; //TODO: Fer: eliminar Spends, reemplazar por UTXO
 
     /// Invalid if indexes not initialized.
     const unspent_database_v2& unspents() const;
