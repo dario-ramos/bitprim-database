@@ -199,9 +199,12 @@ add_library(bitprim-database ${MODE}
     src/store.cpp)
 
 
-        target_include_directories(bitprim-database PUBLIC
+target_include_directories(bitprim-database PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+
+target_include_directories(bitprim-database PUBLIC src/sqlite/)
+
 
 target_compile_definitions(bitprim-database PUBLIC -DBCD_STATIC)
 
