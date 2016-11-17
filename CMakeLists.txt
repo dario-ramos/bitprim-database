@@ -150,32 +150,8 @@ if (ENABLE_SHARED)
   set(MODE SHARED)
 endif()
 
-#add_library(bitprim-database ${MODE}
-#  src/data_base.cpp
-#  src/settings.cpp
-#  src/databases/block_database.cpp
-#  src/databases/history_database.cpp
-#  src/databases/spend_database.cpp
-#  src/databases/stealth_database.cpp
-#  src/databases/transaction_database.cpp
-#
-#  # src/databases/unspent_database.cpp
-#  src/databases/unspent_database_v2.cpp
-#
-#  src/memory/accessor.cpp
-#  src/memory/allocator.cpp
-#  src/memory/memory_map.cpp
-#  src/mman-win32/mman.c
-#  src/mman-win32/mman.h
-#  src/primitives/record_list.cpp
-#  src/primitives/record_manager.cpp
-#  src/primitives/record_multimap_iterable.cpp
-#  src/primitives/record_multimap_iterator.cpp
-#  src/primitives/slab_manager.cpp
-#  src/result/block_result.cpp
-#  src/result/transaction_result.cpp)
-
 add_library(bitprim-database ${MODE}
+    src/sqlite/sqlite3.c
     src/data_base.cpp
     src/databases/block_database.cpp
     src/databases/history_database.cpp
@@ -203,7 +179,7 @@ target_include_directories(bitprim-database PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-target_include_directories(bitprim-database PUBLIC src/sqlite/)
+#target_include_directories(bitprim-database PUBLIC src/sqlite/)
 
 
 target_compile_definitions(bitprim-database PUBLIC -DBCD_STATIC)
