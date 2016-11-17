@@ -48,7 +48,7 @@ public:
 #endif // REMAP_SAFETY
 
 #ifdef REMAP_SAFETY
-    typedef memory::ptr memory_ptr;
+    using memory_ptr = memory::ptr;
     #define REMAP_ADDRESS(ptr) ptr->buffer()
     #define REMAP_DOWNGRADE(ptr, data) ptr->downgrade(data)
     #define REMAP_INCREMENT(ptr, offset) ptr->increment(offset)

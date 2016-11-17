@@ -37,49 +37,41 @@ static constexpr size_t version_size = sizeof(uint32_t);
 static constexpr size_t locktime_size = sizeof(uint32_t);
 static constexpr size_t position_size = sizeof(uint32_t);
 
-transaction_result::transaction_result(const memory_ptr slab)
-  : slab_(slab), hash_(null_hash)
-{
-}
+//transaction_result::transaction_result(const memory_ptr slab)
+//  : slab_(slab), hash_(null_hash)
+//{}
+//
+//transaction_result::transaction_result(const memory_ptr slab,
+//    hash_digest&& hash)
+//  : slab_(slab), hash_(std::move(hash))
+//{}
+//
+//transaction_result::transaction_result(const memory_ptr slab,
+//    const hash_digest& hash)
+//  : slab_(slab), hash_(hash)
+//{}
 
-transaction_result::transaction_result(const memory_ptr slab,
-    hash_digest&& hash)
-  : slab_(slab), hash_(std::move(hash))
-{
-}
-
-transaction_result::transaction_result(const memory_ptr slab,
-    const hash_digest& hash)
-  : slab_(slab), hash_(hash)
-{
-}
-
-transaction_result::operator bool() const
-{
+transaction_result::operator bool() const {
     return slab_ != nullptr;
 }
 
-const hash_digest& transaction_result::hash() const
-{
+hash_digest const& transaction_result::hash() const {
     return hash_;
 }
 
-size_t transaction_result::height() const
-{
+size_t transaction_result::height() const {
     BITCOIN_ASSERT(slab_);
     const auto memory = REMAP_ADDRESS(slab_);
     return from_little_endian_unsafe<uint32_t>(memory);
 }
 
-size_t transaction_result::position() const
-{
+size_t transaction_result::position() const {
     BITCOIN_ASSERT(slab_);
     const auto memory = REMAP_ADDRESS(slab_);
     return from_little_endian_unsafe<uint32_t>(memory + height_size);
 }
 
-bool transaction_result::is_spent(size_t fork_height) const
-{
+bool transaction_result::is_spent(size_t fork_height) const {
     static const auto not_spent = output::validation::not_spent;
 
     BITCOIN_ASSERT(slab_);
@@ -110,8 +102,7 @@ bool transaction_result::is_spent(size_t fork_height) const
 }
 
 // If index is out of range returns default/invalid output (.value not_found).
-chain::output transaction_result::output(uint32_t index) const
-{
+chain::output transaction_result::output(uint32_t index) const {
     BITCOIN_ASSERT(slab_);
     const auto memory = REMAP_ADDRESS(slab_);
     const auto tx_start = memory + height_size + position_size;
@@ -138,8 +129,7 @@ chain::output transaction_result::output(uint32_t index) const
     return out;
 }
 
-chain::transaction transaction_result::transaction() const
-{
+chain::transaction transaction_result::transaction() const {
     BITCOIN_ASSERT(slab_);
     const auto memory = REMAP_ADDRESS(slab_);
     const auto tx_start = memory + height_size + position_size;

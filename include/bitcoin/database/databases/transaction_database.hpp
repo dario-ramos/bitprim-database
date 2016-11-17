@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2015 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2016 Bitprim developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -25,10 +25,8 @@
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database/define.hpp>
-#include <bitcoin/database/memory/memory_map.hpp>
 #include <bitcoin/database/result/transaction_result.hpp>
-#include <bitcoin/database/primitives/slab_hash_table.hpp>
-#include <bitcoin/database/primitives/slab_manager.hpp>
+#include <bitcoin/database/primitives/db_connection.hpp>
 
 namespace libbitcoin {
 namespace database {
@@ -38,15 +36,13 @@ namespace database {
 /// that is assigned upon storage.
 /// This is so we can quickly reconstruct blocks given a list of tx indexes
 /// belonging to that block. These are stored with the block.
-class BCD_API transaction_database
-{
+class BCD_API transaction_database {
 public:
-    typedef boost::filesystem::path path;
-    typedef std::shared_ptr<shared_mutex> mutex_ptr;
+    using path = boost::filesystem::path;
+//    typedef std::shared_ptr<shared_mutex> mutex_ptr;
 
     /// Construct the database.
-    transaction_database(const path& map_filename, size_t buckets,
-        size_t expansion, mutex_ptr mutex = nullptr);
+    transaction_database(path const& filename);
 
     /// Close the database (all threads must first be stopped).
     ~transaction_database();
@@ -61,19 +57,19 @@ public:
     bool close();
 
     /// Fetch transaction by its hash.
-    transaction_result get(const hash_digest& hash) const;
+    transaction_result get(hash_digest const& hash) const;
 
     /// Fetch transaction by its hash, at or below the specified block height.
-    transaction_result get(const hash_digest& hash, size_t fork_height) const;
+    transaction_result get(hash_digest const& hash, size_t fork_height) const;
 
     /// Store a transaction in the database.
-    void store(size_t height, size_t position, const chain::transaction& tx);
+    void store(size_t height, size_t position, chain::transaction const& tx);
 
     /// Update the spender height of the output in the tx store.
-    bool update(const chain::output_point& point, size_t spender_height);
+    bool update(chain::output_point const& point, size_t spender_height);
 
     /// Delete a transaction from database.
-    bool unlink(const hash_digest& hash);
+    bool unlink(hash_digest const& hash);
 
     /// Commit latest inserts.
     void synchronize();
@@ -82,16 +78,7 @@ public:
     bool flush();
 
 private:
-    typedef slab_hash_table<hash_digest> slab_map;
-
-    // The starting size of the hash table, used by create.
-    const size_t initial_map_file_size_;
-
-    // Hash table used for looking up txs by hash.
-    memory_map lookup_file_;
-    slab_hash_table_header lookup_header_;
-    slab_manager lookup_manager_;
-    slab_map lookup_map_;
+    bitprim::db_connection tx_db;
 };
 
 } // namespace database
