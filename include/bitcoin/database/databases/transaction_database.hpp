@@ -79,6 +79,15 @@ public:
 
 private:
     bitprim::db_connection tx_db;
+
+    // Prepared Statements
+    sqlite3_stmt* insert_tx_stmt_;
+    sqlite3_stmt* insert_tx_input_stmt_;
+    sqlite3_stmt* insert_tx_output_stmt_;
+
+    sqlite3_stmt* select_tx_by_hash_stmt_;
+    sqlite3_stmt* select_txin_by_txid_stmt_;
+    sqlite3_stmt* select_txout_by_txid_stmt_;
 };
 
 } // namespace database
