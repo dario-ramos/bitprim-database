@@ -57,13 +57,13 @@ transaction_database::transaction_database(path const& filename)
 {
     int rc;
     
-    rc = sqlite3_prepare_v2(db.ptr(), insert_tx_sql, -1, &insert_tx_stmt_, NULL);
-    rc = sqlite3_prepare_v2(db.ptr(), insert_txin_sql, -1, &insert_tx_input_stmt_, NULL);
-    rc = sqlite3_prepare_v2(db.ptr(), insert_txout_sql, -1, &insert_tx_output_stmt_, NULL);
+    rc = sqlite3_prepare_v2(tx_db.ptr(), insert_tx_sql, -1, &insert_tx_stmt_, NULL);
+    rc = sqlite3_prepare_v2(tx_db.ptr(), insert_txin_sql, -1, &insert_tx_input_stmt_, NULL);
+    rc = sqlite3_prepare_v2(tx_db.ptr(), insert_txout_sql, -1, &insert_tx_output_stmt_, NULL);
 
-    rc = sqlite3_prepare_v2(db.ptr(), select_tx_sql, -1, &select_tx_by_hash_stmt_, NULL);
-    rc = sqlite3_prepare_v2(db.ptr(), select_txin_sql, -1, &select_txin_by_txid_stmt_, NULL);
-    rc = sqlite3_prepare_v2(db.ptr(), select_txout_sql, -1, &select_txout_by_txid_stmt_, NULL);
+    rc = sqlite3_prepare_v2(tx_db.ptr(), select_tx_sql, -1, &select_tx_by_hash_stmt_, NULL);
+    rc = sqlite3_prepare_v2(tx_db.ptr(), select_txin_sql, -1, &select_txin_by_txid_stmt_, NULL);
+    rc = sqlite3_prepare_v2(tx_db.ptr(), select_txout_sql, -1, &select_txout_by_txid_stmt_, NULL);
 
     //TODO: Fer: check for errors
 }
@@ -80,12 +80,6 @@ bool transaction_database::create() {
 
     bool res = true;
 
-    sql = "CREATE TABLE transactions( "
-            "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-            "hash TEXT NOT NULL UNIQUE, "
-            "version INTEGER NOT NULL, "
-            "locktime INTEGER NOT NULL );";
-
     // db.exec(sql, [](int res, std::string const& error_msg){
     //     if (res != SQLITE_OK) {
     //         fprintf(stderr, "Create SQL error: %s\n", error_msg.c_str());
@@ -94,7 +88,11 @@ bool transaction_database::create() {
     //     }
     // });
 
-    db.exec(sql, [](int res, std::string const& error_msg){
+    tx_db.exec("CREATE TABLE transactions( "
+            "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+            "hash TEXT NOT NULL UNIQUE, "
+            "version INTEGER NOT NULL, "
+            "locktime INTEGER NOT NULL );", [](int res, std::string const& error_msg){
         if (res != SQLITE_OK) {
             //TODO: Fer: Log errors
             res = false;
@@ -102,35 +100,30 @@ bool transaction_database::create() {
     });
     if (!res) return res;
 
-    sql = "CREATE TABLE input ("
+    tx_db.exec("CREATE TABLE input ("
             "`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
             "`transaction_id` INTEGER NOT NULL, "
             "`prev_output_hash` TEXT NOT NULL, "
             "`prev_output_index` INTEGER NOT NULL, "
             "`script` BLOB, "
-            "`sequence` INTEGER NOT NULL );";
-
-    db.exec(sql, [](int res, std::string const& error_msg){
+            "`sequence` INTEGER NOT NULL );", [](int res, std::string const& error_msg){
         if (res != SQLITE_OK) {
             res = false;
         }
     });
     if (!res) return res;
 
-    sql = "CREATE TABLE output ( "
+    tx_db.exec("CREATE TABLE output ( "
             "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
             "transaction_id INTEGER NOT NULL, "
             "idx INTEGER NOT NULL, "
             "amount INTEGER NOT NULL, "
-            "script BLOB );";
-
-    db.exec(sql, [](int res, std::string const& error_msg){
+            "script BLOB );", [](int res, std::string const& error_msg){
         if (res != SQLITE_OK) {
             res = false;
         }
     });
     
-
     return res;
 
 //    // Resize and create require an opened file.
@@ -203,7 +196,7 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
         auto script_size = sqlite3_column_bytes(stmt, 3);
         auto script_ptr = static_cast<uint8_t const*>(sqlite3_column_blob(stmt, 3));
         std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
-        chain::script::factory_from_data script(script_data, true);
+        auto script = chain::script::factory_from_data(script_data, true);
 
         auto sequence = static_cast<uint32_t>(sqlite3_column_int(stmt, 1));
 
@@ -225,7 +218,8 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
 
     sqlite3_reset(stmt);
 
-    return std::make_pair(true, res);
+    // return std::make_pair(true, res);
+    return res;
 }
 
 //sql = "SELECT id, index, amount, script FROM output WHERE transaction_id = ?1 ORDER BY id;";
@@ -244,7 +238,7 @@ chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_i
         auto script_ptr = static_cast<uint8_t const*>(sqlite3_column_blob(stmt, 3));
         std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
 
-        chain::script::factory_from_data script(script_data, true);
+        auto script = chain::script::factory_from_data(script_data, true);
 
         chain::output out(amount, script);
 
@@ -262,7 +256,8 @@ chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_i
 
     sqlite3_reset(stmt);
 
-    return std::make_pair(true, res);
+    // return std::make_pair(true, res);
+    return res;
 }
 
 
@@ -309,18 +304,19 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
         // tx.from_data(deserial, use_wire_encoding);
 
         // TODO: add hash param to deserialization to eliminate this construction.
-        return chain::transaction(std::move(tx), hash_digest(hash));
+        // return chain::transaction(std::move(tx), hash_digest(hash));
+        tx = chain::transaction(std::move(tx), hash_digest(hash));
 
 
         sqlite3_reset(select_tx_by_hash_stmt_);
-        return std::make_pair(true, transaction_query_result {id, version, locktime});
-
+        // return std::make_pair(true, transaction_query_result {id, version, locktime});
+        return transaction_result(true, hash, tx);
     } else {
         sqlite3_reset(select_tx_by_hash_stmt_);
-        return std::make_pair(true, transaction_query_result());
+        return transaction_result(false, hash, chain::transaction());
     }
 
-    return transaction_result(true);
+    
 }
 
 bool transaction_database::update(output_point const& point, size_t spender_height) {

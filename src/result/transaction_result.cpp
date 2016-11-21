@@ -23,7 +23,7 @@
 #include <cstdint>
 #include <utility>
 #include <bitcoin/bitcoin.hpp>
-#include <bitcoin/database/memory/memory.hpp>
+// #include <bitcoin/database/memory/memory.hpp>
 
 namespace libbitcoin {
 namespace database {
@@ -51,8 +51,14 @@ static constexpr size_t position_size = sizeof(uint32_t);
 //  : slab_(slab), hash_(hash)
 //{}
 
+
+transaction_result::transaction_result(bool valid, hash_digest hash, chain::transaction const& tx)
+ : valid_(valid), hash_(hash), tx_(tx)
+{}
+
 transaction_result::operator bool() const {
-    return slab_ != nullptr;
+    // return slab_ != nullptr;
+    return valid_;
 }
 
 hash_digest const& transaction_result::hash() const {
@@ -60,87 +66,97 @@ hash_digest const& transaction_result::hash() const {
 }
 
 size_t transaction_result::height() const {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    return from_little_endian_unsafe<uint32_t>(memory);
+    // BITCOIN_ASSERT(slab_);
+    // const auto memory = REMAP_ADDRESS(slab_);
+    // return from_little_endian_unsafe<uint32_t>(memory);
+    return 0;
 }
 
 size_t transaction_result::position() const {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    return from_little_endian_unsafe<uint32_t>(memory + height_size);
+    // BITCOIN_ASSERT(slab_);
+    // const auto memory = REMAP_ADDRESS(slab_);
+    // return from_little_endian_unsafe<uint32_t>(memory + height_size);
+    return 0;
 }
 
 bool transaction_result::is_spent(size_t fork_height) const {
-    static const auto not_spent = output::validation::not_spent;
+    // static const auto not_spent = output::validation::not_spent;
 
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    const auto tx_start = memory + height_size + position_size;
-    auto deserial = make_unsafe_deserializer(tx_start);
-    deserial.skip(version_size + locktime_size);
-    const auto outputs = deserial.read_size_little_endian();
-    BITCOIN_ASSERT(deserial);
+    // BITCOIN_ASSERT(slab_);
+    // const auto memory = REMAP_ADDRESS(slab_);
+    // const auto tx_start = memory + height_size + position_size;
+    // auto deserial = make_unsafe_deserializer(tx_start);
+    // deserial.skip(version_size + locktime_size);
+    // const auto outputs = deserial.read_size_little_endian();
+    // BITCOIN_ASSERT(deserial);
 
-    // Search all outputs for an unspent indication.
-    for (uint32_t output = 0; output < outputs; ++output)
-    {
-        const auto spender_height = deserial.read_4_bytes_little_endian();
-        BITCOIN_ASSERT(deserial);
+    // // Search all outputs for an unspent indication.
+    // for (uint32_t output = 0; output < outputs; ++output)
+    // {
+    //     const auto spender_height = deserial.read_4_bytes_little_endian();
+    //     BITCOIN_ASSERT(deserial);
 
-        // A spend from above the fork height is not considered a spend.
-        // There cannot also be a spend below the fork height, so it's unspent.
-        if (spender_height == not_spent || spender_height > fork_height)
-            return false;
+    //     // A spend from above the fork height is not considered a spend.
+    //     // There cannot also be a spend below the fork height, so it's unspent.
+    //     if (spender_height == not_spent || spender_height > fork_height)
+    //         return false;
 
-        deserial.skip(value_size);
-        deserial.skip(deserial.read_size_little_endian());
-        BITCOIN_ASSERT(deserial);
-    }
+    //     deserial.skip(value_size);
+    //     deserial.skip(deserial.read_size_little_endian());
+    //     BITCOIN_ASSERT(deserial);
+    // }
+
+    // return true;
 
     return true;
 }
 
 // If index is out of range returns default/invalid output (.value not_found).
 chain::output transaction_result::output(uint32_t index) const {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    const auto tx_start = memory + height_size + position_size;
-    auto deserial = make_unsafe_deserializer(tx_start);
-    deserial.skip(version_size + locktime_size);
-    const auto outputs = deserial.read_size_little_endian();
-    BITCOIN_ASSERT(deserial);
+    // BITCOIN_ASSERT(slab_);
+    // const auto memory = REMAP_ADDRESS(slab_);
+    // const auto tx_start = memory + height_size + position_size;
+    // auto deserial = make_unsafe_deserializer(tx_start);
+    // deserial.skip(version_size + locktime_size);
+    // const auto outputs = deserial.read_size_little_endian();
+    // BITCOIN_ASSERT(deserial);
 
-    if (index >= outputs)
-        return{};
+    // if (index >= outputs)
+    //     return{};
 
-    // Skip outputs until the target output.
-    for (uint32_t output = 0; output < index; ++output)
-    {
-        deserial.skip(height_size);
-        deserial.skip(value_size);
-        deserial.skip(deserial.read_size_little_endian());
-        BITCOIN_ASSERT(deserial);
-    }
+    // // Skip outputs until the target output.
+    // for (uint32_t output = 0; output < index; ++output)
+    // {
+    //     deserial.skip(height_size);
+    //     deserial.skip(value_size);
+    //     deserial.skip(deserial.read_size_little_endian());
+    //     BITCOIN_ASSERT(deserial);
+    // }
 
-    // Read and return the target output.
+    // // Read and return the target output.
+    // chain::output out;
+    // out.from_data(deserial, use_wire_encoding);
+    // return out;
+
+
     chain::output out;
-    out.from_data(deserial, use_wire_encoding);
     return out;
 }
 
 chain::transaction transaction_result::transaction() const {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    const auto tx_start = memory + height_size + position_size;
-    auto deserial = make_unsafe_deserializer(tx_start);
+    // BITCOIN_ASSERT(slab_);
+    // const auto memory = REMAP_ADDRESS(slab_);
+    // const auto tx_start = memory + height_size + position_size;
+    // auto deserial = make_unsafe_deserializer(tx_start);
 
-    // READ THE TX
-    chain::transaction tx;
-    tx.from_data(deserial, use_wire_encoding);
+    // // READ THE TX
+    // chain::transaction tx;
+    // tx.from_data(deserial, use_wire_encoding);
 
-    // TODO: add hash param to deserialization to eliminate this construction.
-    return chain::transaction(std::move(tx), hash_digest(hash_));
+    // // TODO: add hash param to deserialization to eliminate this construction.
+     // return chain::transaction(std::move(tx), hash_digest(hash_));
+
+    return tx_;
 }
 } // namespace database
 } // namespace libbitcoin

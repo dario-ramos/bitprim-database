@@ -156,9 +156,12 @@ void data_base::start()
     blocks_ = std::make_shared<block_database>(block_table, block_index,
         settings_.block_table_buckets, settings_.file_growth_rate, mutex_);
 
-    transactions_ = std::make_shared<transaction_database>(transaction_table,
-        settings_.transaction_table_buckets, settings_.file_growth_rate,
-        mutex_);
+    // transactions_ = std::make_shared<transaction_database>(transaction_table,
+    //     settings_.transaction_table_buckets, settings_.file_growth_rate,
+    //     mutex_);
+
+    transactions_ = std::make_shared<transaction_database>(transaction_table);
+
 
     if (use_indexes)
     {

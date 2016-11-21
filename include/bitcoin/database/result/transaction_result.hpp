@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database/define.hpp>
-#include <bitcoin/database/memory/memory.hpp>
+// #include <bitcoin/database/memory/memory.hpp>
 
 namespace libbitcoin {
 namespace database {
@@ -36,7 +36,7 @@ public:
 //    transaction_result(const memory_ptr slab, hash_digest&& hash);
 //    transaction_result(const memory_ptr slab, const hash_digest& hash);
 
-    transaction_result(bool valid);
+    transaction_result(bool valid, hash_digest hash, chain::transaction const& tx);
 
 
         /// True if this transaction result is valid (found).
@@ -61,8 +61,10 @@ public:
     chain::transaction transaction() const;
 
 private:
+    bool valid_;
 //    const memory_ptr slab_;
     const hash_digest hash_;
+    chain::transaction tx_;
 };
 
 } // namespace database
