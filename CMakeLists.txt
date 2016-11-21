@@ -179,6 +179,10 @@ target_include_directories(bitprim-database PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
+target_include_directories(bitprim-database PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sqlite>
+  $<INSTALL_INTERFACE:sqlite>)
+
 #target_include_directories(bitprim-database PUBLIC src/sqlite/)
 
 
