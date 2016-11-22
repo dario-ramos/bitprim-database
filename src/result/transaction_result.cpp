@@ -31,11 +31,11 @@ namespace database {
 using namespace bc::chain;
 
 static const auto use_wire_encoding = false;
-static constexpr size_t value_size = sizeof(uint64_t);
-static constexpr size_t height_size = sizeof(uint32_t);
-static constexpr size_t version_size = sizeof(uint32_t);
-static constexpr size_t locktime_size = sizeof(uint32_t);
-static constexpr size_t position_size = sizeof(uint32_t);
+// static constexpr size_t value_size = sizeof(uint64_t);
+// static constexpr size_t height_size = sizeof(uint32_t);
+// static constexpr size_t version_size = sizeof(uint32_t);
+// static constexpr size_t locktime_size = sizeof(uint32_t);
+// static constexpr size_t position_size = sizeof(uint32_t);
 
 //transaction_result::transaction_result(const memory_ptr slab)
 //  : slab_(slab), hash_(null_hash)
@@ -65,83 +65,83 @@ hash_digest const& transaction_result::hash() const {
     return hash_;
 }
 
-size_t transaction_result::height() const {
-    // BITCOIN_ASSERT(slab_);
-    // const auto memory = REMAP_ADDRESS(slab_);
-    // return from_little_endian_unsafe<uint32_t>(memory);
-    return 0;
-}
+// size_t transaction_result::height() const {
+//     // BITCOIN_ASSERT(slab_);
+//     // const auto memory = REMAP_ADDRESS(slab_);
+//     // return from_little_endian_unsafe<uint32_t>(memory);
+//     return 0;
+// }
 
-size_t transaction_result::position() const {
-    // BITCOIN_ASSERT(slab_);
-    // const auto memory = REMAP_ADDRESS(slab_);
-    // return from_little_endian_unsafe<uint32_t>(memory + height_size);
-    return 0;
-}
+// size_t transaction_result::position() const {
+//     // BITCOIN_ASSERT(slab_);
+//     // const auto memory = REMAP_ADDRESS(slab_);
+//     // return from_little_endian_unsafe<uint32_t>(memory + height_size);
+//     return 0;
+// }
 
-bool transaction_result::is_spent(size_t fork_height) const {
-    // static const auto not_spent = output::validation::not_spent;
+// bool transaction_result::is_spent(size_t fork_height) const {
+//     // static const auto not_spent = output::validation::not_spent;
 
-    // BITCOIN_ASSERT(slab_);
-    // const auto memory = REMAP_ADDRESS(slab_);
-    // const auto tx_start = memory + height_size + position_size;
-    // auto deserial = make_unsafe_deserializer(tx_start);
-    // deserial.skip(version_size + locktime_size);
-    // const auto outputs = deserial.read_size_little_endian();
-    // BITCOIN_ASSERT(deserial);
+//     // BITCOIN_ASSERT(slab_);
+//     // const auto memory = REMAP_ADDRESS(slab_);
+//     // const auto tx_start = memory + height_size + position_size;
+//     // auto deserial = make_unsafe_deserializer(tx_start);
+//     // deserial.skip(version_size + locktime_size);
+//     // const auto outputs = deserial.read_size_little_endian();
+//     // BITCOIN_ASSERT(deserial);
 
-    // // Search all outputs for an unspent indication.
-    // for (uint32_t output = 0; output < outputs; ++output)
-    // {
-    //     const auto spender_height = deserial.read_4_bytes_little_endian();
-    //     BITCOIN_ASSERT(deserial);
+//     // // Search all outputs for an unspent indication.
+//     // for (uint32_t output = 0; output < outputs; ++output)
+//     // {
+//     //     const auto spender_height = deserial.read_4_bytes_little_endian();
+//     //     BITCOIN_ASSERT(deserial);
 
-    //     // A spend from above the fork height is not considered a spend.
-    //     // There cannot also be a spend below the fork height, so it's unspent.
-    //     if (spender_height == not_spent || spender_height > fork_height)
-    //         return false;
+//     //     // A spend from above the fork height is not considered a spend.
+//     //     // There cannot also be a spend below the fork height, so it's unspent.
+//     //     if (spender_height == not_spent || spender_height > fork_height)
+//     //         return false;
 
-    //     deserial.skip(value_size);
-    //     deserial.skip(deserial.read_size_little_endian());
-    //     BITCOIN_ASSERT(deserial);
-    // }
+//     //     deserial.skip(value_size);
+//     //     deserial.skip(deserial.read_size_little_endian());
+//     //     BITCOIN_ASSERT(deserial);
+//     // }
 
-    // return true;
+//     // return true;
 
-    return true;
-}
+//     return true;
+// }
 
-// If index is out of range returns default/invalid output (.value not_found).
-chain::output transaction_result::output(uint32_t index) const {
-    // BITCOIN_ASSERT(slab_);
-    // const auto memory = REMAP_ADDRESS(slab_);
-    // const auto tx_start = memory + height_size + position_size;
-    // auto deserial = make_unsafe_deserializer(tx_start);
-    // deserial.skip(version_size + locktime_size);
-    // const auto outputs = deserial.read_size_little_endian();
-    // BITCOIN_ASSERT(deserial);
+// // If index is out of range returns default/invalid output (.value not_found).
+// chain::output transaction_result::output(uint32_t index) const {
+//     // BITCOIN_ASSERT(slab_);
+//     // const auto memory = REMAP_ADDRESS(slab_);
+//     // const auto tx_start = memory + height_size + position_size;
+//     // auto deserial = make_unsafe_deserializer(tx_start);
+//     // deserial.skip(version_size + locktime_size);
+//     // const auto outputs = deserial.read_size_little_endian();
+//     // BITCOIN_ASSERT(deserial);
 
-    // if (index >= outputs)
-    //     return{};
+//     // if (index >= outputs)
+//     //     return{};
 
-    // // Skip outputs until the target output.
-    // for (uint32_t output = 0; output < index; ++output)
-    // {
-    //     deserial.skip(height_size);
-    //     deserial.skip(value_size);
-    //     deserial.skip(deserial.read_size_little_endian());
-    //     BITCOIN_ASSERT(deserial);
-    // }
+//     // // Skip outputs until the target output.
+//     // for (uint32_t output = 0; output < index; ++output)
+//     // {
+//     //     deserial.skip(height_size);
+//     //     deserial.skip(value_size);
+//     //     deserial.skip(deserial.read_size_little_endian());
+//     //     BITCOIN_ASSERT(deserial);
+//     // }
 
-    // // Read and return the target output.
-    // chain::output out;
-    // out.from_data(deserial, use_wire_encoding);
-    // return out;
+//     // // Read and return the target output.
+//     // chain::output out;
+//     // out.from_data(deserial, use_wire_encoding);
+//     // return out;
 
 
-    chain::output out;
-    return out;
-}
+//     chain::output out;
+//     return out;
+// }
 
 chain::transaction transaction_result::transaction() const {
     // BITCOIN_ASSERT(slab_);

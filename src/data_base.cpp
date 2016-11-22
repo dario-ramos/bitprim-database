@@ -508,9 +508,10 @@ block data_base::pop()
         // We want the highest tx with this hash (allow max height).
         const auto tx_result = transactions_->get(tx_hash, max_size_t);
 
-        if (!tx_result || tx_result.height() != height ||
-            tx_result.position() != tx)
-            return{};
+        //TODO: Fer: I don't understand this test
+        // if (!tx_result || tx_result.height() != height ||
+        //     tx_result.position() != tx)
+        //     return{};
 
         // Deserialize transaction and move it to the block.
         txs.emplace_back(tx_result.transaction());

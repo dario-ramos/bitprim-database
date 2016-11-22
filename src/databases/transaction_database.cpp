@@ -40,10 +40,21 @@ static constexpr auto version_lock_size = version_size + locktime_size;
 
 static constexpr char insert_tx_sql[] = "INSERT INTO transactions (hash, version, locktime) VALUES (?1, ?2, ?3);";
 static constexpr char insert_txin_sql[] = "INSERT INTO input (transaction_id, prev_output_hash, prev_output_index, script, sequence) VALUES (?1, ?2, ?3, ?4, ?5);";
-static constexpr char insert_txout_sql[] = "INSERT INTO output (transaction_id, idx, amount, script) VALUES (?1, ?2, ?3, ?4);";
-static constexpr char select_tx_sql[] = "SELECT id, version, locktime FROM transactions WHERE hash = ?1 ORDER BY id;";
+static constexpr char insert_txout_sql[] = "INSERT INTO output (transaction_id, idx, amount, script, spender_height) VALUES (?1, ?2, ?3, ?4, ?5);";
+
+// static constexpr char select_tx_sql[] = "SELECT id, version, locktime FROM transactions WHERE hash = ?1 ORDER BY id;";
+static constexpr char select_tx_sql[] = "SELECT id, version, locktime FROM transactions WHERE hash = ?1;";
+
 static constexpr char select_txin_sql[] = "SELECT id, prev_output_hash, prev_output_index, script, sequence FROM input WHERE transaction_id = ?1 ORDER BY id;";
-static constexpr char select_txout_sql[] = "SELECT id, idx, amount, script FROM output WHERE transaction_id = ?1 ORDER BY id;";
+static constexpr char select_txout_sql[] = "SELECT id, idx, amount, script, spender_height FROM output WHERE transaction_id = ?1 ORDER BY id;";
+
+// static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE id = $2;";
+static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE transaction_id = $2 AND index = $3;";
+
+static constexpr char delete_tx_sql[] = "DELETE FROM transactions WHERE id = $1;";
+static constexpr char delete_txin_sql[] = "DELETE FROM input WHERE transaction_id = $1;";
+static constexpr char delete_txout_sql[] = "DELETE FROM output WHERE transaction_id = $1;";
+
 
 // Transactions uses a hash table index, O(1).
 transaction_database::transaction_database(path const& filename)
@@ -64,6 +75,12 @@ transaction_database::transaction_database(path const& filename)
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_tx_sql, -1, &select_tx_by_hash_stmt_, NULL);
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_txin_sql, -1, &select_txin_by_txid_stmt_, NULL);
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_txout_sql, -1, &select_txout_by_txid_stmt_, NULL);
+
+    rc = sqlite3_prepare_v2(tx_db.ptr(), update_txout_sql, -1, &update_tx_output_stmt_, NULL);
+
+    rc = sqlite3_prepare_v2(tx_db.ptr(), delete_tx_sql, -1, &delete_tx_stmt_, NULL);
+    rc = sqlite3_prepare_v2(tx_db.ptr(), delete_txin_sql, -1, &delete_tx_input_stmt_, NULL);
+    rc = sqlite3_prepare_v2(tx_db.ptr(), delete_txout_sql, -1, &delete_tx_output_stmt_, NULL);
 
     //TODO: Fer: check for errors
 }
@@ -118,7 +135,8 @@ bool transaction_database::create() {
             "transaction_id INTEGER NOT NULL, "
             "idx INTEGER NOT NULL, "
             "amount INTEGER NOT NULL, "
-            "script BLOB );", [](int res, std::string const& error_msg){
+            "script BLOB,"
+            "spender_height INTEGER NOT NULL );", [](int res, std::string const& error_msg){
         if (res != SQLITE_OK) {
             res = false;
         }
@@ -152,21 +170,28 @@ bool transaction_database::open() {
 //        lookup_file_.open() &&
 //        lookup_header_.start() &&
 //        lookup_manager_.start();
+
+    //TODO: Fer: Implement this. Is it necessary?
 }
 
 // Close files.
 bool transaction_database::close() {
 //    return lookup_file_.close();
+    //TODO: Fer: Implement this. Is it necessary?
+    return true;
 }
 
 // Commit latest inserts.
 void transaction_database::synchronize() {
 //    lookup_manager_.sync();
+    //TODO: Fer: Implement this. Is it necessary?
 }
 
 // Flush the memory map to disk.
 bool transaction_database::flush() {
 //    return lookup_file_.flush();
+    //TODO: Fer: Implement this. Is it necessary?
+    return true;
 }
 
 // Queries.
@@ -195,7 +220,10 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
 
         auto script_size = sqlite3_column_bytes(stmt, 3);
         auto script_ptr = static_cast<uint8_t const*>(sqlite3_column_blob(stmt, 3));
-        std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
+        
+        // std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
+        data_chunk script_data(script_ptr, script_ptr + script_size);
+        
         auto script = chain::script::factory_from_data(script_data, true);
 
         auto sequence = static_cast<uint32_t>(sqlite3_column_int(stmt, 1));
@@ -236,7 +264,11 @@ chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_i
 
         auto script_size = sqlite3_column_bytes(stmt, 3);
         auto script_ptr = static_cast<uint8_t const*>(sqlite3_column_blob(stmt, 3));
-        std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
+        // std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
+        data_chunk script_data(script_ptr, script_ptr + script_size);
+
+        auto spender_height = static_cast<uint32_t>(sqlite3_column_int(stmt, 4));
+        
 
         auto script = chain::script::factory_from_data(script_data, true);
 
@@ -315,8 +347,55 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
         sqlite3_reset(select_tx_by_hash_stmt_);
         return transaction_result(false, hash, chain::transaction());
     }
+}
 
-    
+bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt,
+                              int64_t tx_id,
+                              uint32_t index,
+                              uint32_t spender_height) {
+
+    sqlite3_bind_int(stmt, 1, spender_height);
+    sqlite3_bind_int64(stmt, 2, tx_id);
+    sqlite3_bind_int(stmt, 3, index);
+
+    auto rc = sqlite3_step(stmt);
+
+    sqlite3_reset(stmt);
+
+    if (rc != SQLITE_DONE) {
+        //TODO: hiding error code
+        //printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+        return false;
+    }
+    return true;
+}
+
+// struct transaction_query_result {
+//     int64_t id;
+//     uint32_t version;
+//     uint32_t locktime;
+// };
+
+// using select_tx_result = std::pair<bool, transaction_query_result>;
+
+using select_tx_result = std::pair<bool, int64_t>;
+
+select_tx_result select_transaction_id_by_hash(sqlite3* db, sqlite3_stmt* stmt,
+                                 hash_digest const& hash) {
+    sqlite3_bind_text(stmt, 1, reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest), SQLITE_STATIC);
+
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        auto id = sqlite3_column_int64(stmt, 0);
+        // auto version = static_cast<uint32_t>(sqlite3_column_int(stmt, 1));
+        // auto locktime = static_cast<uint32_t>(sqlite3_column_int(stmt, 2));
+
+        sqlite3_reset(stmt);
+        return std::make_pair(true, id);
+    } else {
+        sqlite3_reset(stmt);
+        return std::make_pair(false, 0);
+    }
 }
 
 bool transaction_database::update(output_point const& point, size_t spender_height) {
@@ -343,6 +422,97 @@ bool transaction_database::update(output_point const& point, size_t spender_heig
 //    // Write the spender height to the first word of the target output.
 //    serial.write_4_bytes_little_endian(spender_height);
 //    return true;
+
+    // select_tx_result select_transaction_id_by_hash(sqlite3* db, sqlite3_stmt* stmt, hash_digest const& hash)
+
+
+    auto res = select_transaction_id_by_hash(tx_db.ptr(), select_tx_by_hash_stmt_, point.hash());
+
+    if (res.first) {
+        return update_tx_output(tx_db.ptr(), update_tx_output_stmt_,
+                                      res.second,
+                                      point.index(),
+                                      spender_height);
+    }
+
+    return false;
+}
+
+using insert_result = std::pair<bool, int64_t>;
+
+insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,
+    hash_digest const& hash, uint32_t version, uint32_t locktime) {
+    sqlite3_bind_text(stmt, 1, reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest), SQLITE_STATIC);
+    sqlite3_bind_int(stmt,  2, version);
+    sqlite3_bind_int(stmt,  3, locktime);
+
+    auto rc = sqlite3_step(stmt);
+
+    sqlite3_reset(stmt);
+
+    if (rc != SQLITE_DONE) {
+        //TODO: hiding error code
+        //printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+        return std::make_pair(false, 0);
+    }
+    return std::make_pair(true, sqlite3_last_insert_rowid(db));
+}
+
+insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt, chain::transaction const& tx) {
+    return insert_transaction(db, stmt, tx.hash(), tx.version(), tx.locktime());
+}
+
+//sql = "INSERT INTO input (transaction_id, prev_output_hash, prev_output_index, script, sequence) VALUES (?1, ?2, ?3, ?4, ?5);";
+insert_result insert_tx_input(sqlite3* db, sqlite3_stmt* stmt,
+                              int64_t tx_id,
+                              hash_digest const& prev_output_hash,
+                              uint32_t prev_output_index,
+                              // std::vector<uint8_t> const& script,
+                              data_chunk const& script,
+                              uint32_t sequence) {
+
+    sqlite3_bind_int64(stmt, 1, tx_id);
+    sqlite3_bind_text(stmt, 2, reinterpret_cast<char const*>(prev_output_hash.data()), sizeof(hash_digest), SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 3, prev_output_index);
+    sqlite3_bind_blob(stmt,4, script.data(), script.size(), SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 5, sequence);
+
+    auto rc = sqlite3_step(stmt);
+
+    sqlite3_reset(stmt);
+
+    if (rc != SQLITE_DONE) {
+        //TODO: hiding error code
+        //printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+        return std::make_pair(false, 0);
+    }
+    return std::make_pair(true, sqlite3_last_insert_rowid(db));
+}
+
+//sql = "INSERT INTO output (transaction_id, index, amount, script) VALUES (?1, ?2, ?3, ?4);";
+insert_result insert_tx_output(sqlite3* db, sqlite3_stmt* stmt,
+                              int64_t tx_id,
+                              uint32_t index,
+                              uint64_t amount,
+                              std::vector<uint8_t> const& script,
+                              uint32_t spender_height) {
+
+    sqlite3_bind_int64(stmt, 1, tx_id);
+    sqlite3_bind_int(stmt, 2, index);
+    sqlite3_bind_int64(stmt, 3, amount);
+    sqlite3_bind_blob(stmt, 4, script.data(), script.size(), SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 5, spender_height);
+
+    auto rc = sqlite3_step(stmt);
+
+    sqlite3_reset(stmt);
+
+    if (rc != SQLITE_DONE) {
+        //TODO: hiding error code
+        //printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+        return std::make_pair(false, 0);
+    }
+    return std::make_pair(true, sqlite3_last_insert_rowid(db));
 }
 
 void transaction_database::store(size_t height, size_t position, chain::transaction const& tx) {
@@ -354,7 +524,7 @@ void transaction_database::store(size_t height, size_t position, chain::transact
 //    const auto hight32 = static_cast<size_t>(height);
 //
 //    BITCOIN_ASSERT(position <= max_uint32);
-//    const auto position32 = static_cast<size_t>(position);
+//    const auto     = static_cast<size_t>(position);
 //
 //    BITCOIN_ASSERT(tx_size <= max_size_t - version_lock_size);
 //    const auto value_size = version_lock_size + static_cast<size_t>(tx_size);
@@ -370,10 +540,75 @@ void transaction_database::store(size_t height, size_t position, chain::transact
 //    };
 //
 //    lookup_map_.store(key, write, value_size);
+
+    //BEGIN TRANSACTION
+
+    auto res = insert_transaction(tx_db.ptr(), insert_tx_stmt_, tx);
+
+    if (!res.first) {
+        //TODO: Fer: manipulate Error!
+    }
+
+    auto txid = res.second;
+
+    for (auto&& input : tx.inputs()) {
+        insert_tx_input(tx_db.ptr(), insert_tx_input_stmt_, txid,
+                    input.previous_output().hash(),
+                    input.previous_output().index(),
+                    input.script().to_data(false),                      //TODO: Fer: Verify if false (prefix parameter) is correct!
+                    input.sequence());
+    }
+
+    uint32_t index = 0;
+    for (auto&& output : tx.outputs()) {
+
+        insert_tx_output(tx_db.ptr(), insert_tx_output_stmt_,
+                        txid,
+                        index,
+                        output.value(),
+                        output.script().to_data(false),                 //TODO: Fer: Verify if false (prefix parameter) is correct!
+                        output::validation::not_spent);
+        ++index;
+    }
+
+    //COMMIT TRANSACTION / ROLLBACK TRANSACTION
+}
+
+
+
+bool delete_tx_generic(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
+    sqlite3_bind_int64(stmt, 1, tx_id);
+    auto rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+
+    if (rc != SQLITE_DONE) {
+        //TODO: hiding error code
+        //printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+        return false;
+    }
+    return true;
 }
 
 bool transaction_database::unlink(hash_digest const& hash) {
 //    return lookup_map_.unlink(hash);
+    //TODO: Fer: implement this!
+
+    auto res = select_transaction_id_by_hash(tx_db.ptr(), select_tx_by_hash_stmt_, hash);
+
+    if (res.first) {
+        auto res2 = delete_tx_generic(tx_db.ptr(), delete_tx_stmt_, res.second);
+        if (!res2) return false;
+
+        res2 = delete_tx_generic(tx_db.ptr(), delete_tx_input_stmt_, res.second);
+        if (!res2) return false;
+
+        res2 = delete_tx_generic(tx_db.ptr(), delete_tx_output_stmt_, res.second);
+        return res2;
+    }
+
+    return false;
+
+
 }
 
 } // namespace database
