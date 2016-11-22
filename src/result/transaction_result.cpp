@@ -31,29 +31,9 @@ namespace database {
 using namespace bc::chain;
 
 static const auto use_wire_encoding = false;
-// static constexpr size_t value_size = sizeof(uint64_t);
-// static constexpr size_t height_size = sizeof(uint32_t);
-// static constexpr size_t version_size = sizeof(uint32_t);
-// static constexpr size_t locktime_size = sizeof(uint32_t);
-// static constexpr size_t position_size = sizeof(uint32_t);
 
-//transaction_result::transaction_result(const memory_ptr slab)
-//  : slab_(slab), hash_(null_hash)
-//{}
-//
-//transaction_result::transaction_result(const memory_ptr slab,
-//    hash_digest&& hash)
-//  : slab_(slab), hash_(std::move(hash))
-//{}
-//
-//transaction_result::transaction_result(const memory_ptr slab,
-//    const hash_digest& hash)
-//  : slab_(slab), hash_(hash)
-//{}
-
-
-transaction_result::transaction_result(bool valid, hash_digest hash, chain::transaction const& tx)
- : valid_(valid), hash_(hash), tx_(tx)
+transaction_result::transaction_result(bool valid, hash_digest hash, chain::transaction const& tx, uint32_t block_height, uint32_t position)
+ : valid_(valid), hash_(hash), tx_(tx), block_height_(block_height), position_(position)
 {}
 
 transaction_result::operator bool() const {
@@ -65,19 +45,19 @@ hash_digest const& transaction_result::hash() const {
     return hash_;
 }
 
-// size_t transaction_result::height() const {
-//     // BITCOIN_ASSERT(slab_);
-//     // const auto memory = REMAP_ADDRESS(slab_);
-//     // return from_little_endian_unsafe<uint32_t>(memory);
-//     return 0;
-// }
+ size_t transaction_result::height() const {
+     // BITCOIN_ASSERT(slab_);
+     // const auto memory = REMAP_ADDRESS(slab_);
+     // return from_little_endian_unsafe<uint32_t>(memory);
+     return block_height_;
+ }
 
-// size_t transaction_result::position() const {
-//     // BITCOIN_ASSERT(slab_);
-//     // const auto memory = REMAP_ADDRESS(slab_);
-//     // return from_little_endian_unsafe<uint32_t>(memory + height_size);
-//     return 0;
-// }
+ size_t transaction_result::position() const {
+     // BITCOIN_ASSERT(slab_);
+     // const auto memory = REMAP_ADDRESS(slab_);
+     // return from_little_endian_unsafe<uint32_t>(memory + height_size);
+     return position_;
+ }
 
 // bool transaction_result::is_spent(size_t fork_height) const {
 //     // static const auto not_spent = output::validation::not_spent;

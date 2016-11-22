@@ -36,7 +36,7 @@ public:
 //    transaction_result(const memory_ptr slab, hash_digest&& hash);
 //    transaction_result(const memory_ptr slab, const hash_digest& hash);
 
-    transaction_result(bool valid, hash_digest hash, chain::transaction const& tx);
+    transaction_result(bool valid, hash_digest hash, chain::transaction const& tx, uint32_t block_height, uint32_t position);
 
 
         /// True if this transaction result is valid (found).
@@ -45,11 +45,11 @@ public:
     /// The transaction hash (from cache).
     hash_digest const& hash() const;
 
-    // /// The height of the block which includes the transaction.
-    // size_t height() const;
+     /// The height of the block which includes the transaction.
+     size_t height() const;
 
-    // /// The ordinal position of the transaction within its block.
-    // size_t position() const;
+     /// The ordinal position of the transaction within its block.
+     size_t position() const;
 
     // /// True if all transaction outputs are spent at or below fork_height.
     // bool is_spent(size_t fork_height) const;
@@ -65,6 +65,8 @@ private:
 //    const memory_ptr slab_;
     const hash_digest hash_;
     chain::transaction tx_;
+    uint32_t block_height_;
+    uint32_t position_;
 };
 
 } // namespace database

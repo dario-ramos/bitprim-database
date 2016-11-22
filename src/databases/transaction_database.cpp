@@ -31,29 +31,29 @@ namespace database {
 using namespace bc::chain;
 
 static const auto use_wire_encoding = false;
-static constexpr auto value_size = sizeof(uint64_t);
-static constexpr auto height_size = sizeof(uint32_t);
-static constexpr auto version_size = sizeof(uint32_t);
-static constexpr auto locktime_size = sizeof(uint32_t);
-static constexpr auto position_size = sizeof(uint32_t);
-static constexpr auto version_lock_size = version_size + locktime_size;
+//static constexpr auto value_size = sizeof(uint64_t);
+//static constexpr auto height_size = sizeof(uint32_t);
+//static constexpr auto version_size = sizeof(uint32_t);
+//static constexpr auto locktime_size = sizeof(uint32_t);
+//static constexpr auto position_size = sizeof(uint32_t);
+//static constexpr auto version_lock_size = version_size + locktime_size;
 
-static constexpr char insert_tx_sql[] = "INSERT INTO transactions (hash, version, locktime) VALUES (?1, ?2, ?3);";
+static constexpr char insert_tx_sql[] = "INSERT INTO transactions (hash, version, locktime, block_height, position) VALUES (?1, ?2, ?3, ?4, ?5);";
 static constexpr char insert_txin_sql[] = "INSERT INTO input (transaction_id, prev_output_hash, prev_output_index, script, sequence) VALUES (?1, ?2, ?3, ?4, ?5);";
 static constexpr char insert_txout_sql[] = "INSERT INTO output (transaction_id, idx, amount, script, spender_height) VALUES (?1, ?2, ?3, ?4, ?5);";
 
-// static constexpr char select_tx_sql[] = "SELECT id, version, locktime FROM transactions WHERE hash = ?1 ORDER BY id;";
-static constexpr char select_tx_sql[] = "SELECT id, version, locktime FROM transactions WHERE hash = ?1;";
+// static constexpr char select_tx_sql[] = "SELECT id, version, locktime, block_height, position FROM transactions WHERE hash = ?1 ORDER BY id;";
+static constexpr char select_tx_sql[] = "SELECT id, version, locktime, block_height, position FROM transactions WHERE hash = ?1;";
 
 static constexpr char select_txin_sql[] = "SELECT id, prev_output_hash, prev_output_index, script, sequence FROM input WHERE transaction_id = ?1 ORDER BY id;";
 static constexpr char select_txout_sql[] = "SELECT id, idx, amount, script, spender_height FROM output WHERE transaction_id = ?1 ORDER BY id;";
 
-// static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE id = $2;";
-static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE transaction_id = $2 AND index = $3;";
+// static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE id = ?2;";
+static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE transaction_id = ?2 AND index = ?3;";
 
-static constexpr char delete_tx_sql[] = "DELETE FROM transactions WHERE id = $1;";
-static constexpr char delete_txin_sql[] = "DELETE FROM input WHERE transaction_id = $1;";
-static constexpr char delete_txout_sql[] = "DELETE FROM output WHERE transaction_id = $1;";
+static constexpr char delete_tx_sql[] = "DELETE FROM transactions WHERE id = ?1;";
+static constexpr char delete_txin_sql[] = "DELETE FROM input WHERE transaction_id = ?1;";
+static constexpr char delete_txout_sql[] = "DELETE FROM output WHERE transaction_id = ?1;";
 
 
 // Transactions uses a hash table index, O(1).
@@ -109,7 +109,10 @@ bool transaction_database::create() {
             "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
             "hash TEXT NOT NULL UNIQUE, "
             "version INTEGER NOT NULL, "
-            "locktime INTEGER NOT NULL );", [](int res, std::string const& error_msg){
+            "locktime INTEGER NOT NULL, "
+            "block_height INTEGER NOT NULL, "
+            "position INTEGER NOT NULL);", [](int res, std::string const& error_msg){
+
         if (res != SQLITE_OK) {
             //TODO: Fer: Log errors
             res = false;
@@ -172,6 +175,7 @@ bool transaction_database::open() {
 //        lookup_manager_.start();
 
     //TODO: Fer: Implement this. Is it necessary?
+    return true;
 }
 
 // Close files.
@@ -302,19 +306,6 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
 //    return transaction_result(memory, hash);
 
 
-    // tx_db.exec_each("SELECT * FROM transactions WHERE ????", [](int argc, char** argv, char** azColName){
-    //     for (size_t i = 0; i < argc; ++i) {
-    //         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    //     }
-    //     return 0;
-    // }, [](int res, std::string const& error_msg){
-    //     if (res != SQLITE_OK) {
-    //         fprintf(stderr, "SQL error: %s\n", error_msg);
-    //     } else {
-    //         fprintf(stdout, "Select done successfully\n");
-    //     }
-    // });
-
     sqlite3_bind_text(select_tx_by_hash_stmt_, 1, reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest), SQLITE_STATIC);
 
     int rc = sqlite3_step(select_tx_by_hash_stmt_);
@@ -322,6 +313,8 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
         auto id = sqlite3_column_int64(select_tx_by_hash_stmt_, 0);
         auto version = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 1));
         auto locktime = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 2));
+        auto block_height = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 3));
+        auto position = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 4));
 
         // input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
         auto inputs = select_inputs(tx_db.ptr(), select_txin_by_txid_stmt_, id);
@@ -341,11 +334,10 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
 
 
         sqlite3_reset(select_tx_by_hash_stmt_);
-        // return std::make_pair(true, transaction_query_result {id, version, locktime});
-        return transaction_result(true, hash, tx);
+        return transaction_result(true, hash, tx, block_height, position);
     } else {
         sqlite3_reset(select_tx_by_hash_stmt_);
-        return transaction_result(false, hash, chain::transaction());
+        return transaction_result(false, hash, chain::transaction(), uint32_t(), uint32_t());
     }
 }
 
@@ -370,13 +362,6 @@ bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt,
     return true;
 }
 
-// struct transaction_query_result {
-//     int64_t id;
-//     uint32_t version;
-//     uint32_t locktime;
-// };
-
-// using select_tx_result = std::pair<bool, transaction_query_result>;
 
 using select_tx_result = std::pair<bool, int64_t>;
 
@@ -387,8 +372,6 @@ select_tx_result select_transaction_id_by_hash(sqlite3* db, sqlite3_stmt* stmt,
     int rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
         auto id = sqlite3_column_int64(stmt, 0);
-        // auto version = static_cast<uint32_t>(sqlite3_column_int(stmt, 1));
-        // auto locktime = static_cast<uint32_t>(sqlite3_column_int(stmt, 2));
 
         sqlite3_reset(stmt);
         return std::make_pair(true, id);
@@ -441,10 +424,15 @@ bool transaction_database::update(output_point const& point, size_t spender_heig
 using insert_result = std::pair<bool, int64_t>;
 
 insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,
-    hash_digest const& hash, uint32_t version, uint32_t locktime) {
+    hash_digest const& hash, uint32_t version, uint32_t locktime,
+    uint32_t block_height, uint32_t position) {
+
     sqlite3_bind_text(stmt, 1, reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest), SQLITE_STATIC);
     sqlite3_bind_int(stmt,  2, version);
     sqlite3_bind_int(stmt,  3, locktime);
+    sqlite3_bind_int(stmt,  4, block_height);
+    sqlite3_bind_int(stmt,  5, position);
+
 
     auto rc = sqlite3_step(stmt);
 
@@ -458,8 +446,8 @@ insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,
     return std::make_pair(true, sqlite3_last_insert_rowid(db));
 }
 
-insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt, chain::transaction const& tx) {
-    return insert_transaction(db, stmt, tx.hash(), tx.version(), tx.locktime());
+insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt, chain::transaction const& tx, uint32_t block_height, uint32_t position) {
+    return insert_transaction(db, stmt, tx.hash(), tx.version(), tx.locktime(), block_height, position);
 }
 
 //sql = "INSERT INTO input (transaction_id, prev_output_hash, prev_output_index, script, sequence) VALUES (?1, ?2, ?3, ?4, ?5);";
@@ -543,7 +531,7 @@ void transaction_database::store(size_t height, size_t position, chain::transact
 
     //BEGIN TRANSACTION
 
-    auto res = insert_transaction(tx_db.ptr(), insert_tx_stmt_, tx);
+    auto res = insert_transaction(tx_db.ptr(), insert_tx_stmt_, tx, height, position);
 
     if (!res.first) {
         //TODO: Fer: manipulate Error!
