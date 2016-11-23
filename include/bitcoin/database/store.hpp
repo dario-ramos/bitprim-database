@@ -89,8 +89,8 @@ public:
     const path transaction_table;
 
     /// Optional indexes.
-    //const path spend_table;
-    const path unspent_table;
+    const path spend_table;
+    // const path unspent_table;
     const path history_table;
     const path history_rows;
     const path stealth_rows;
