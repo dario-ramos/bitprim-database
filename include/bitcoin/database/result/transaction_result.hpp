@@ -51,11 +51,11 @@ public:
      /// The ordinal position of the transaction within its block.
      size_t position() const;
 
-    // /// True if all transaction outputs are spent at or below fork_height.
-    // bool is_spent(size_t fork_height) const;
+    /// True if all transaction outputs are spent at or below fork_height.
+    bool is_spent(size_t fork_height) const;
 
-    // /// The output at the specified index within this transaction.
-    // chain::output output(uint32_t index) const;
+    /// The output at the specified index within this transaction.
+    chain::output output(uint32_t index) const;
 
     /// The transaction.
     chain::transaction transaction() const;

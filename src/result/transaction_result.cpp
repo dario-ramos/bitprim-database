@@ -59,69 +59,84 @@ hash_digest const& transaction_result::hash() const {
      return position_;
  }
 
-// bool transaction_result::is_spent(size_t fork_height) const {
-//     // static const auto not_spent = output::validation::not_spent;
+bool transaction_result::is_spent(size_t fork_height) const {
+    // static const auto not_spent = output::validation::not_spent;
 
-//     // BITCOIN_ASSERT(slab_);
-//     // const auto memory = REMAP_ADDRESS(slab_);
-//     // const auto tx_start = memory + height_size + position_size;
-//     // auto deserial = make_unsafe_deserializer(tx_start);
-//     // deserial.skip(version_size + locktime_size);
-//     // const auto outputs = deserial.read_size_little_endian();
-//     // BITCOIN_ASSERT(deserial);
+    // BITCOIN_ASSERT(slab_);
+    // const auto memory = REMAP_ADDRESS(slab_);
+    // const auto tx_start = memory + height_size + position_size;
+    // auto deserial = make_unsafe_deserializer(tx_start);
+    // deserial.skip(version_size + locktime_size);
+    // const auto outputs = deserial.read_size_little_endian();
+    // BITCOIN_ASSERT(deserial);
 
-//     // // Search all outputs for an unspent indication.
-//     // for (uint32_t output = 0; output < outputs; ++output)
-//     // {
-//     //     const auto spender_height = deserial.read_4_bytes_little_endian();
-//     //     BITCOIN_ASSERT(deserial);
+    // // Search all outputs for an unspent indication.
+    // for (uint32_t output = 0; output < outputs; ++output)
+    // {
+    //     const auto spender_height = deserial.read_4_bytes_little_endian();
+    //     BITCOIN_ASSERT(deserial);
 
-//     //     // A spend from above the fork height is not considered a spend.
-//     //     // There cannot also be a spend below the fork height, so it's unspent.
-//     //     if (spender_height == not_spent || spender_height > fork_height)
-//     //         return false;
+    //     // A spend from above the fork height is not considered a spend.
+    //     // There cannot also be a spend below the fork height, so it's unspent.
+    //     if (spender_height == not_spent || spender_height > fork_height)
+    //         return false;
 
-//     //     deserial.skip(value_size);
-//     //     deserial.skip(deserial.read_size_little_endian());
-//     //     BITCOIN_ASSERT(deserial);
-//     // }
+    //     deserial.skip(value_size);
+    //     deserial.skip(deserial.read_size_little_endian());
+    //     BITCOIN_ASSERT(deserial);
+    // }
 
-//     // return true;
+    // return true;
 
-//     return true;
-// }
+    //TODO: Fer: change this to auto& when the return type of transaction_result::transaction() be corrected!
+    auto tx = transaction();
 
-// // If index is out of range returns default/invalid output (.value not_found).
-// chain::output transaction_result::output(uint32_t index) const {
-//     // BITCOIN_ASSERT(slab_);
-//     // const auto memory = REMAP_ADDRESS(slab_);
-//     // const auto tx_start = memory + height_size + position_size;
-//     // auto deserial = make_unsafe_deserializer(tx_start);
-//     // deserial.skip(version_size + locktime_size);
-//     // const auto outputs = deserial.read_size_little_endian();
-//     // BITCOIN_ASSERT(deserial);
+    auto f = std::find_if(std::begin(tx.outputs()), std::end(tx.outputs()), 
+        [fork_height](chain::output const& x){
+            // A spend from above the fork height is not considered a spend.
+            // There cannot also be a spend below the fork height, so it's unspent.
+            return (x.validation.spender_height == output::validation::not_spent || x.validation.spender_height > fork_height);
+    });
 
-//     // if (index >= outputs)
-//     //     return{};
+    return f == std::end(tx.outputs());
+}
 
-//     // // Skip outputs until the target output.
-//     // for (uint32_t output = 0; output < index; ++output)
-//     // {
-//     //     deserial.skip(height_size);
-//     //     deserial.skip(value_size);
-//     //     deserial.skip(deserial.read_size_little_endian());
-//     //     BITCOIN_ASSERT(deserial);
-//     // }
+// If index is out of range returns default/invalid output (.value not_found).
+chain::output transaction_result::output(uint32_t index) const {
+    // BITCOIN_ASSERT(slab_);
+    // const auto memory = REMAP_ADDRESS(slab_);
+    // const auto tx_start = memory + height_size + position_size;
+    // auto deserial = make_unsafe_deserializer(tx_start);
+    // deserial.skip(version_size + locktime_size);
+    // const auto outputs = deserial.read_size_little_endian();
+    // BITCOIN_ASSERT(deserial);
 
-//     // // Read and return the target output.
-//     // chain::output out;
-//     // out.from_data(deserial, use_wire_encoding);
-//     // return out;
+    // if (index >= outputs)
+    //     return{};
 
+    // // Skip outputs until the target output.
+    // for (uint32_t output = 0; output < index; ++output)
+    // {
+    //     deserial.skip(height_size);
+    //     deserial.skip(value_size);
+    //     deserial.skip(deserial.read_size_little_endian());
+    //     BITCOIN_ASSERT(deserial);
+    // }
 
-//     chain::output out;
-//     return out;
-// }
+    // // Read and return the target output.
+    // chain::output out;
+    // out.from_data(deserial, use_wire_encoding);
+    // return out;
+
+    //TODO: Fer: change this to auto& when the return type of transaction_result::transaction() be corrected!
+    auto tx = transaction();
+
+    if (index >= tx.outputs().size()) {
+        return {};
+    }
+
+    return tx.outputs()[index];
+}
 
 chain::transaction transaction_result::transaction() const {
     // BITCOIN_ASSERT(slab_);
