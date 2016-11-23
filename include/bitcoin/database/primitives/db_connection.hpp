@@ -92,6 +92,7 @@ private:
     sqlite3* db_;
 };
 
+inline
 int exec(db_connection const& db, char const* sql) {
     return db.exec(sql);
 }
