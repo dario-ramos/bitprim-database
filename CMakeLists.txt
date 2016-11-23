@@ -190,6 +190,12 @@ target_compile_definitions(bitprim-database PUBLIC -DBCD_STATIC)
 
 target_link_libraries(bitprim-database bitprim-core)
 
+if (NOT MSVC)
+  target_link_libraries(bitprim-database dl)
+endif()
+
+
+
 _group_sources(bitprim-database "${CMAKE_CURRENT_LIST_DIR}")
 
 # Tests
