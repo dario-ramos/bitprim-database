@@ -477,12 +477,18 @@ insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,
     sqlite3_bind_int(stmt,  4, block_height);
     sqlite3_bind_int(stmt,  5, position);
 
-
     auto rc = sqlite3_step(stmt);
 
     sqlite3_reset(stmt);
 
     if (rc != SQLITE_DONE) {
+
+        std::cout << "hash: " << encode_hash(hash) << std::endl;
+        std::cout << "version: " << version << std::endl;
+        std::cout << "locktime: " << locktime << std::endl;
+        std::cout << "block_height: " << block_height << std::endl;
+        std::cout << "position: " << position << std::endl;
+
         //TODO: hiding error code
         printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
         std::cout << "insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,...) -- END with Error\n";
