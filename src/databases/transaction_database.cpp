@@ -272,20 +272,26 @@ void print_bytes_n(uint8_t const* f, size_t n) {
 
 
 chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
-//    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)\n";
+   std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 1\n";
 
     sqlite3_reset(stmt);
     sqlite3_bind_int64(stmt, 1, tx_id);
 
     chain::input::list res;
 
+
     int rc;
     while ( (rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         // auto id = sqlite3_column_int64(stmt, 0);
 
+        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 2\n";
+
         hash_digest prev_output_hash;
         memcpy(prev_output_hash.data(), sqlite3_column_text(stmt, 1), sizeof(prev_output_hash));
         auto prev_output_index = static_cast<uint32_t>(sqlite3_column_int(stmt, 2));
+
+        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 3\n";
+
 
         // output_point(hash_digest&& hash, uint32_t index);
         // output_point(const hash_digest& hash, uint32_t index);
@@ -304,21 +310,30 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
         // std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
         data_chunk script_data(script_ptr, script_ptr + script_size);
         
-        std::cout << "after vector creation" << '\n';
+        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 4\n";
 
         auto script = chain::script::factory_from_data(script_data, true);
 
+        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 5\n";
+
         auto sequence = static_cast<uint32_t>(sqlite3_column_int(stmt, 4));
+
+        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 6\n";
 
         // input(output_point&& previous_output, chain::script&& script, uint32_t sequence);
         // input(const output_point& previous_output, const chain::script& script, uint32_t sequence);
         chain::input in(previous_output, script, sequence);
 
+        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 7\n";
+
         res.push_back(in);
         //TODO: implement the constructor
 //        res.emplace_back(id, prev_output_hash, prev_output_index, script, sequence);
+
+        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 8\n";
     }
 
+    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 9\n";
 
 //    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) -- END\n";
 
