@@ -428,7 +428,7 @@ bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt,
         std::cout << "bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id, uint32_t index, uint32_t spender_height) -- END with Error\n";
         std::cout << "rc: " << rc << '\n';
         std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
-        printf("ERROR inserting data: %s\n", sqlite3_errmsg(tx_db.ptr()));
+        printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
 
         return false;
     }
