@@ -59,12 +59,6 @@ static constexpr char delete_txout_sql[] = "DELETE FROM output WHERE transaction
 // Transactions uses a hash table index, O(1).
 transaction_database::transaction_database(path const& filename)
     : tx_db(filename.c_str())
-    // , insert_tx_stmt_()
-    // , insert_tx_input_stmt_()
-    // , insert_tx_output_stmt_()
-    // , select_tx_by_hash_stmt_()
-    // , select_txin_by_txid_stmt_()
-    // , select_txout_by_txid_stmt_()
 {
     std::cout << "transaction_database::transaction_database(path const& filename)\n";
     std::cout << "filename: " << filename << "\n";
@@ -396,12 +390,18 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
         std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END OK\n";
 
         return transaction_result(true, hash, tx, block_height, position);
+    } else if (rc == SQLITE_DONE) {
+        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END no data found\n";
+
+        std::cout << "hash: " << encode_hash(hash) << std::endl;
+
+        return transaction_result(false, hash, chain::transaction(), uint32_t(), uint32_t());
     } else {
 
         std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END with Error\n";
         std::cout << "rc: " << rc << '\n';
         std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
-        printf("ERROR inserting data: %s\n", sqlite3_errmsg(tx_db.ptr()));
+        printf("ERROR in query: %s\n", sqlite3_errmsg(tx_db.ptr()));
 
         sqlite3_reset(select_tx_by_hash_stmt_);
         return transaction_result(false, hash, chain::transaction(), uint32_t(), uint32_t());
