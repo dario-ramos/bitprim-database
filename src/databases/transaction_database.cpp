@@ -452,12 +452,17 @@ select_tx_result select_transaction_id_by_hash(sqlite3* db, sqlite3_stmt* stmt, 
         auto id = sqlite3_column_int64(stmt, 0);
 
         sqlite3_reset(stmt);
-        std::cout << "select_tx_result select_transaction_id_by_hash(sqlite3* db, sqlite3_stmt* stmt, hash_digest const& hash) -- END OK\n";
+        std::cout
+                << "select_tx_result select_transaction_id_by_hash(sqlite3* db, sqlite3_stmt* stmt, hash_digest const& hash) -- END OK\n";
         return std::make_pair(true, id);
+    } else if (rc == SQLITE_DONE) {
+        std::cout << "select_tx_result select_transaction_id_by_hash(sqlite3* db, sqlite3_stmt* stmt, hash_digest const& hash) -- END no data found\n";
+        std::cout << "hash: " << encode_hash(hash) << std::endl;
+        return std::make_pair(false, 0ll);
     } else {
         sqlite3_reset(stmt);
         std::cout << "select_tx_result select_transaction_id_by_hash(sqlite3* db, sqlite3_stmt* stmt, hash_digest const& hash) -- END with Error\n";
-        return std::make_pair(false, 0);
+        return std::make_pair(false, 0ll);
     }
 }
 
@@ -502,7 +507,7 @@ bool transaction_database::update(output_point const& point, size_t spender_heig
                                       spender_height);
     }
 
-    std::cout << "bool transaction_database::update(output_point const& point, size_t spender_height) -- END with Error\n";
+    std::cout << "bool transaction_database::update(output_point const& point, size_t spender_height) -- END with Error or not data found\n";
     return false;
 }
 
