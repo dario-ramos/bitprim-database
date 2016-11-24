@@ -447,7 +447,7 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
         return transaction_result(true, hash, tx, block_height, position);
     } else if (rc == SQLITE_DONE) {
         // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END no data found\n";
-        std::cout << "hash: " << encode_hash(hash) << std::endl;
+        // std::cout << "hash: " << encode_hash(hash) << std::endl;
         return transaction_result(false, hash, chain::transaction(), uint32_t(), uint32_t());
     } else {
         std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END with Error\n";
