@@ -397,23 +397,38 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
 //    const auto memory = lookup_map_.find(hash);
 //    return transaction_result(memory, hash);
 
-
-//    std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const\n";
+    std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 1 - " << std::this_thread::get_id() << "\n";
 
     sqlite3_reset(select_tx_by_hash_stmt_);
     sqlite3_bind_text(select_tx_by_hash_stmt_, 1, reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest), SQLITE_STATIC);
 
+    std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 2 - " << std::this_thread::get_id() << "\n";
+
     int rc = sqlite3_step(select_tx_by_hash_stmt_);
     if (rc == SQLITE_ROW) {
+
+        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 3 - " << std::this_thread::get_id() << "\n";
+
+
         auto id = sqlite3_column_int64(select_tx_by_hash_stmt_, 0);
         auto version = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 1));
         auto locktime = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 2));
         auto block_height = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 3));
         auto position = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 4));
 
+        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 4 - " << std::this_thread::get_id() << "\n";
+
+
         // input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
         auto inputs = select_inputs(tx_db.ptr(), select_txin_by_txid_stmt_, id);
+
+        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 5 - " << std::this_thread::get_id() << "\n";
+
+
         auto outputs = select_outputs(tx_db.ptr(), select_txout_by_txid_stmt_, id);
+
+        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 6 - " << std::this_thread::get_id() << "\n";
+
 
 
         // transaction(uint32_t version, uint32_t locktime, ins&& inputs, outs&& outputs);
@@ -423,10 +438,14 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
         chain::transaction tx(version, locktime, inputs, outputs);
         // tx.from_data(deserial, use_wire_encoding);
 
+        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 7 - " << std::this_thread::get_id() << "\n";
+
+
         // TODO: add hash param to deserialization to eliminate this construction.
         // return chain::transaction(std::move(tx), hash_digest(hash));
         tx = chain::transaction(std::move(tx), hash_digest(hash));
 
+        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 8 - " << std::this_thread::get_id() << "\n";
 
 
 //        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END OK\n";
