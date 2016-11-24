@@ -48,8 +48,19 @@ static constexpr char select_tx_sql[] = "SELECT id, version, locktime, block_hei
 static constexpr char select_txin_sql[] = "SELECT id, prev_output_hash, prev_output_index, script, sequence FROM input WHERE transaction_id = ?1 ORDER BY id;";
 static constexpr char select_txout_sql[] = "SELECT id, idx, amount, script, spender_height FROM output WHERE transaction_id = ?1 ORDER BY id;";
 
+
+//        tx_db.exec("CREATE TABLE output ( "
+//        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+//        "transaction_id INTEGER NOT NULL, "
+//        "idx INTEGER NOT NULL, "
+//        "amount INTEGER NOT NULL, "
+//        "script BLOB,"
+//        "spender_height INTEGER NOT NULL );", [&res](int reslocal, std::string const& error_msg){
+
+
+
 // static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE id = ?2;";
-static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE transaction_id = ?2 AND index = ?3;";
+static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE transaction_id = ?2 AND idx = ?3;";
 
 static constexpr char delete_tx_sql[] = "DELETE FROM transactions WHERE id = ?1;";
 static constexpr char delete_txin_sql[] = "DELETE FROM input WHERE transaction_id = ?1;";
@@ -80,48 +91,48 @@ bool transaction_database::prepare_statements() {
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), insert_tx_sql, -1, &insert_tx_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), insert_txin_sql, -1, &insert_tx_input_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), insert_txout_sql, -1, &insert_tx_output_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_tx_sql, -1, &select_tx_by_hash_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_txin_sql, -1, &select_txin_by_txid_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_txout_sql, -1, &select_txout_by_txid_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), update_txout_sql, -1, &update_tx_output_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), delete_tx_sql, -1, &delete_tx_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
     rc = sqlite3_prepare_v2(tx_db.ptr(), delete_txin_sql, -1, &delete_tx_input_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
     rc = sqlite3_prepare_v2(tx_db.ptr(), delete_txout_sql, -1, &delete_tx_output_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
-    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
 
     //TODO: Fer: check for errors
@@ -236,7 +247,7 @@ bool transaction_database::close() {
 // Commit latest inserts.
 void transaction_database::synchronize() {
 
-    std::cout << "bool transaction_database::synchronize()\n";
+//    std::cout << "bool transaction_database::synchronize()\n";
 
 //    lookup_manager_.sync();
     //TODO: Fer: Implement this. Is it necessary?
@@ -262,7 +273,7 @@ transaction_result transaction_database::get(hash_digest const& hash) const {
 }
 
 chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
-    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)\n";
+//    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)\n";
 
     sqlite3_reset(stmt);
     sqlite3_bind_int64(stmt, 1, tx_id);
@@ -301,15 +312,14 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
     }
 
 
-    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) -- END\n";
-
+//    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) -- END\n";
 
     // return std::make_pair(true, res);
     return res;
 }
 
 chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
-    std::cout << "chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)\n";
+//    std::cout << "chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)\n";
 
     sqlite3_reset(stmt);
     sqlite3_bind_int64(stmt, 1, tx_id);
@@ -338,9 +348,7 @@ chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_i
 //        res.emplace_back(id, index, amount, script);
     }
 
-
-    std::cout << "chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) -- END\n";
-
+//    std::cout << "chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) -- END\n";
 
     // return std::make_pair(true, res);
     return res;
@@ -356,7 +364,7 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
 //    return transaction_result(memory, hash);
 
 
-    std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const\n";
+//    std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const\n";
 
     sqlite3_reset(select_tx_by_hash_stmt_);
     sqlite3_bind_text(select_tx_by_hash_stmt_, 1, reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest), SQLITE_STATIC);
@@ -387,20 +395,17 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
 
 
 
-        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END OK\n";
+//        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END OK\n";
 
         return transaction_result(true, hash, tx, block_height, position);
     } else if (rc == SQLITE_DONE) {
         std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END no data found\n";
-
         std::cout << "hash: " << encode_hash(hash) << std::endl;
-
         return transaction_result(false, hash, chain::transaction(), uint32_t(), uint32_t());
     } else {
-
         std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END with Error\n";
         std::cout << "rc: " << rc << '\n';
-        std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//        std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
         printf("ERROR in query: %s\n", sqlite3_errmsg(tx_db.ptr()));
 
         return transaction_result(false, hash, chain::transaction(), uint32_t(), uint32_t());
@@ -412,7 +417,7 @@ bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt,
                               uint32_t index,
                               uint32_t spender_height) {
 
-    std::cout << "bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id, uint32_t index, uint32_t spender_height)\n";
+//    std::cout << "bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id, uint32_t index, uint32_t spender_height)\n";
 
     sqlite3_reset(stmt);
     sqlite3_bind_int(stmt, 1, spender_height);
@@ -426,13 +431,13 @@ bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt,
         //TODO: hiding error code
         std::cout << "bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id, uint32_t index, uint32_t spender_height) -- END with Error\n";
         std::cout << "rc: " << rc << '\n';
-        std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+//        std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
         printf("ERROR: %s\n", sqlite3_errmsg(db));
 
         return false;
     }
 
-    std::cout << "bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id, uint32_t index, uint32_t spender_height) -- END OK\n";
+//    std::cout << "bool update_tx_output(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id, uint32_t index, uint32_t spender_height) -- END OK\n";
 
     return true;
 }
