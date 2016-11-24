@@ -46,21 +46,35 @@ static constexpr auto index_record_size = sizeof(file_offset);
 //  [ [ tx_hash:32 ] ]
 //  [ [    ...     ] ]
 
-// Blocks uses a hash table and an array index, both O(1).
-block_database::block_database(const path& map_filename,
-    const path& index_filename, size_t buckets, size_t expansion,
-    mutex_ptr mutex)
-  : initial_map_file_size_(slab_hash_table_header_size(buckets) +
-        minimum_slabs_size),
-    
-    lookup_file_(map_filename, mutex, expansion), 
-    lookup_header_(lookup_file_, buckets),
-    lookup_manager_(lookup_file_, slab_hash_table_header_size(buckets)),
-    lookup_map_(lookup_header_, lookup_manager_),
+static constexpr char insert_block_sql[] = "INSERT INTO blocks (hash, height, version, prev_block, merkle, timestamp, bits, nonce) VALUES (?1, ?2, ?3, ?4, ?5 , ?6, ?7, ?8);";
 
-    index_file_(index_filename, mutex, expansion),
-    index_manager_(index_file_, index_header_size, index_record_size)
+static constexpr char select_block_by_hash_sql[] = "SELECT id, hash, height, version, prev_block, merkle, timestamp, bits, nonce FROM blocks WHERE hash = ?1;";
+static constexpr char select_block_by_height_sql[] = "SELECT id, hash, height, version, prev_block, merkle, timestamp, bits, nonce FROM blocks WHERE id = ?1;";
+
+static constexpr char get_max_height_block_sql[] = "SELECT max(height) FROM blocks;";
+
+static constexpr char exists_block_by_height_sql[] = "SELECT 1 FROM blocks WHERE id= ?1;";
+
+static constexpr char delete_block_sql[] = "DELETE FROM blocks WHERE hash = ?1;";
+static constexpr char delete_block_sql[] = "DELETE FROM blocks WHERE height = ?1;";
+
+/*
+    block_db.exec("CREATE TABLE blocks( "
+            "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+            "hash TEXT NOT NULL UNIQUE, "
+            "version INTEGER NOT NULL, "
+            "prev_block TEXT NOT NULL , "
+            "merkle TEXT NOT NULL , "
+            "timestamp INTEGER NOT NULL, "
+            "bits INTEGER NOT NULL, "
+            "nonce INTEGER NOT NULL);"
+*/
+
+// Blocks uses a hash table and an array index, both O(1).
+block_database::block_database(const path& filename)
+  : block_db(filename.c_str())
 {
+    prepare_statements();
 }
 
 block_database::~block_database()
@@ -74,25 +88,69 @@ block_database::~block_database()
 // Initialize files and open.
 bool block_database::create()
 {
-    // Resize and create require an opened file.
-    if (!lookup_file_.open() ||
-        !index_file_.open())
-        return false;
+    block_db.exec("CREATE TABLE blocks( "
+            "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+            "hash TEXT NOT NULL UNIQUE, "
+            "height INTEGER NOT NULL UNIQUE, "
+            "version INTEGER NOT NULL, "
+            "prev_block TEXT NOT NULL , "
+            "merkle TEXT NOT NULL , "
+            "timestamp INTEGER NOT NULL, "
+            "bits INTEGER NOT NULL, "
+            "nonce INTEGER NOT NULL);", [&res](int reslocal, std::string const& error_msg){
 
-    // These will throw if insufficient disk space.
-    lookup_file_.resize(initial_map_file_size_);
-    index_file_.resize(minimum_records_size);
+        if (reslocal != SQLITE_OK) {
+            //TODO: Fer: Log errors
+            res = false;
+        }
+    });
 
-    if (!lookup_header_.create() ||
-        !lookup_manager_.create() ||
-        !index_manager_.create())
-        return false;
+    res = prepare_statements();
 
-    // Should not call open after create, already started.
-    return
-        lookup_header_.start() &&
-        lookup_manager_.start() &&
-        index_manager_.start();
+    return res;
+ 
+}
+
+bool block_database::prepare_statements() {
+    std::cout << "bool transaction_database::prepare_statements()\n";
+    int rc;
+
+    //INSERT BLOCK STATEMENT
+    rc = sqlite3_prepare_v2(block_db.ptr(), insert_block_sql, -1, &insert_block_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(block_db.ptr()));
+
+    //SELECT BLOCK BY HASH STATEMENT
+    rc = sqlite3_prepare_v2(block_db.ptr(), select_block_by_hash_sql, -1, &select_block_by_hash_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(block_db.ptr()));
+    
+    //SELECT BLOCK BY HEIGHT STATEMENT
+    rc = sqlite3_prepare_v2(block_db.ptr(), select_block_by_height_sql, -1, &select_block_by_height_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(block_db.ptr()));
+
+    //EXISTS BLOCK BY HEIGHT STATEMENT
+    rc = sqlite3_prepare_v2(block_db.ptr(), exists_block_by_height_sql, -1, &exists_block_by_height_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(block_db.ptr()));
+
+    //GET MAX HEIGHT BLOCK
+    rc = sqlite3_prepare_v2(block_db.ptr(), get_max_height_block_sql, -1, &get_max_height_block_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(block_db.ptr()));
+    
+    //DELETE BLOCK STATEMENT
+    rc = sqlite3_prepare_v2(block_db.ptr(), delete_block_sql, -1, &delete_block_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(block_db.ptr()));
+
+    //TODO: Fer: check for errors
+
+    std::cout << "bool block_database::prepare_statements() -- END\n";
+
+    return true;
+
 }
 
 // Startup and shutdown.
@@ -101,35 +159,27 @@ bool block_database::create()
 // Start files and primitives.
 bool block_database::open()
 {
-    return
-        lookup_file_.open() &&
-        index_file_.open() &&
-        lookup_header_.start() &&
-        lookup_manager_.start() &&
-        index_manager_.start();
+  std::cout << "bool block_database::open()\n";
+  return prepare_statements();
 }
 
 // Close files.
 bool block_database::close()
 {
-    return
-        lookup_file_.close() &&
-        index_file_.close();
+    std::cout << "bool block_database::close()\n";
+    return true;
 }
 
 // Commit latest inserts.
 void block_database::synchronize()
 {
-    lookup_manager_.sync();
-    index_manager_.sync();
+
 }
 
 // Flush the memory maps to disk.
 bool block_database::flush()
 {
-    return
-        lookup_file_.flush() &&
-        index_file_.flush();
+  return true;
 }
 
 // Queries.
@@ -137,65 +187,137 @@ bool block_database::flush()
 
 bool block_database::exists(size_t height) const
 {
-    return height < index_manager_.count() && read_position(height) != empty;
+  sqlite3_reset(exists_block_by_height_stmt_);
+  sqlite3_bind_int(exists_block_by_height_stmt_, 1, height, SQLITE_STATIC);
+  int rc = sqlite3_step(exists_block_by_height_stmt_);
+  return rc == SQLITE_ROW;
 }
 
 block_result block_database::get(size_t height) const
 {
-    if (height >= index_manager_.count())
-        return block_result(nullptr);
-
-    const auto position = read_position(height);
-    const auto memory = lookup_manager_.get(position);
-
-    //*************************************************************************
-    // HACK: back up into the slab to obtain the key (optimization).
-    static const auto prefix_size = slab_row<hash_digest>::prefix_size;
-    const auto buffer = REMAP_ADDRESS(memory);
-    auto reader = make_unsafe_deserializer(buffer - prefix_size);
-    //*************************************************************************
-
-    return block_result(memory, std::move(reader.read_hash()));
+  sqlite3_reset(select_block_by_height_stmt_);
+  sqlite3_bind_int(select_block_by_height_stmt_, 1, height, SQLITE_STATIC);
+  return get(select_block_by_height_stmt_);
 }
 
 block_result block_database::get(const hash_digest& hash) const
 {
-    const auto memory = lookup_map_.find(hash);
-    return block_result(memory, hash);
+  sqlite3_reset(select_block_by_hash_stmt_);
+  sqlite3_bind_text(select_block_by_hash_stmt_, 1, hash, SQLITE_STATIC);
+  return get(select_block_by_hash_stmt_);
 }
+
+block_result block_database::get(sqlite3_stmt* stmt) const
+{  
+  int rc = sqlite3_step(stmt);
+  if (rc == SQLITE_ROW) 
+  {
+
+    auto id = sqlite3_column_int32(stmt, 0);
+    
+    hash_digest hash;
+    memcpy(hash.data(), sqlite3_column_text(stmt, 1), sizeof(hash));
+    
+    auto height = static_cast<uint32_t>(sqlite3_column_int(stmt, 2));
+    
+    auto version = static_cast<uint32_t>(sqlite3_column_int(stmt, 3));
+
+    hash_digest prev_block;
+    memcpy(prev_block.data(), sqlite3_column_text(stmt, 4), sizeof(prev_block));
+
+    hash_digest merkle;
+    memcpy(merkle.data(), sqlite3_column_text(stmt, 5), sizeof(merkle));
+
+    auto timestamp = static_cast<uint32_t>sqlite3_column_int32(stmt, 6);
+    auto bits = static_cast<uint32_t>sqlite3_column_int32(stmt, 7);
+    auto nonce = static_cast<uint32_t>sqlite3_column_int32(stmt, 8);
+
+    vector<hash_digest> tx_hashes;
+
+    //TODO GET TX_HASHES FROM TRANSACTION DATABASE
+    /*
+      static constexpr char select_transactions_from_block_sql[] = "SELECT hash FROM transactions WHERE block_height = ?1 ORDER BY position;";
+      
+      rc = sqlite3_prepare_v2(tx_db.ptr(), select_transactions_from_block_sql, -1, &select_transactions_from_block_stmt_, NULL);
+      std::cout << "rc: " << rc << '\n';
+      printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
+      
+      vector<hash_digest> transaction_database::get_transactions_from_block(size_t height)
+      {
+        sqlite3_reset(select_transactions_from_block_stmt_);
+        sqlite3_bind_int32(select_transactions_from_block_stmt_, 1, height, SQLITE_STATIC);
+        int rc = sqlite3_step(select_transactions_from_block_stmt_);
+        vector<hash_digest> transaction_hashes;
+        if(rc == SQLITE_ROW)
+        {
+          while(rc == SQLITE_ROW)
+          {
+            hash_digest tx_hash;
+            memcpy(tx_hash.data(), sqlite3_column_text(stmt, 0), sizeof(tx_hash));
+            transaction_hashes.push_back(tx_hash);
+          }
+        else 
+          {
+          printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
+          }
+        }
+        
+        return transaction_hashes;
+      }
+    
+    */
+
+    // tx_hashes = transaction_database::get_transactions_from_block(height);
+
+    chain::header block_header(version,prev_block, merkle, timestamp, bits, nonce);
+    return block_result(true, height,hash, block_header,tx_hashes);
+
+
+  } else if (rc == SQLITE_DONE) 
+    {
+
+      std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END no data found\n";
+      hash_digest hash;
+      return block_result(false, uint32_t(), hash, chain::header());
+
+    } else 
+    {
+      std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END with error\n";
+      hash_digest hash;
+      return block_result(false, uint32_t(), hash, chain::header());
+    }
+ 
+}
+
+
 
 void block_database::store(const block& block, size_t height)
 {
-    BITCOIN_ASSERT(height <= max_uint32);
-    const auto height32 = static_cast<uint32_t>(height);
-    const auto tx_count = block.transactions().size();
+  BITCOIN_ASSERT(height <= max_uint32);
+  const auto height32 = static_cast<uint32_t>(height);
+  
+  sqlite3_reset(insert_block_stmt_);
+  //static constexpr char insert_block_sql[] = "INSERT INTO blocks (hash, version, prev_block, merkle, timestamp, bits, nonce) VALUES (?1, ?2, ?3, ?4, ?5 , ?6, ?7);";
+  sqlite3_bind_text(insert_block_stmt_, 1, block.header().hash(), SQLITE_STATIC);
+  sqlite3_bind_int(insert_block_stmt_, 2, height, SQLITE_STATIC);
+  sqlite3_bind_int(insert_block_stmt_, 3, block.header().version(), SQLITE_STATIC);
+  sqlite3_bind_text(insert_block_stmt_, 4, block.header().previous_block_hash(), SQLITE_STATIC);
+  sqlite3_bind_text(insert_block_stmt_, 5, block.header().merkle(), SQLITE_STATIC);
+  sqlite3_bind_int(insert_block_stmt_, 6, block.header().timestamp(), SQLITE_STATIC);
+  sqlite3_bind_int(insert_block_stmt_, 7, block.header().bits(), SQLITE_STATIC);
+  sqlite3_bind_int(insert_block_stmt_, 8, block.header().nonce(), SQLITE_STATIC);
+  auto rc = sqlite3_step(insert_block_stmt_);
+  if (rc != SQLITE_DONE)
+  {
+    std::cout<<"block_database::store(const block& block, size_t height) -- Failed to Insert \n";  
+  }
 
-    // Write block data.
-    const auto write = [&](memory_ptr data)
-    {
-        auto serial = make_unsafe_serializer(REMAP_ADDRESS(data));
-
-        // WRITE THE HEADER
-        serial.write_bytes(block.header().to_data());
-        serial.write_4_bytes_little_endian(height32);
-        serial.write_size_little_endian(tx_count);
-
-        for (const auto& tx: block.transactions())
-            serial.write_hash(tx.hash());
-    };
-
-    const auto key = block.header().hash();
-    const auto size = header::satoshi_fixed_size() + sizeof(height32) +
-        variable_uint_size(tx_count) + (tx_count * hash_size);
-
-    const auto position = lookup_map_.store(key, write, size);
-
-    // Write position to index.
-    write_position(position, height32);
 }
 
 bool block_database::gaps(heights& out_gaps) const
 {
+
+   /*
     const auto count = index_manager_.count();
 
     for (size_t height = 0; height < count; ++height)
@@ -203,10 +325,14 @@ bool block_database::gaps(heights& out_gaps) const
             out_gaps.push_back(height);
 
     return true;
+    */
+  //TODO RAMA 
+  return true;
 }
 
 bool block_database::unlink(size_t from_height)
 {
+    /*
     if (index_manager_.count() > from_height)
     {
         index_manager_.set_count(from_height);
@@ -214,70 +340,26 @@ bool block_database::unlink(size_t from_height)
     }
 
     return false;
+    */
+
+  //TODO RAMA
+  return true;
 }
 
-// This is necessary for parallel import, as gaps are created.
-void block_database::zeroize(array_index first, array_index count)
-{
-    for (array_index index = first; index < (first + count); ++index)
-    {
-        const auto memory = index_manager_.get(index);
-        auto serial = make_unsafe_serializer(REMAP_ADDRESS(memory));
-        serial.write_8_bytes_little_endian(empty);
-    }
-}
-
-// TODO: could relax the guards if only writing empty (headers).
-void block_database::write_position(file_offset position, array_index height)
-{
-    BITCOIN_ASSERT(height < max_uint32);
-    const auto new_count = height + 1;
-
-    // Critical Section
-    ///////////////////////////////////////////////////////////////////////////
-    mutex_.lock_upgrade();
-
-    // Guard index_manager to prevent interim count increase.
-    const auto initial_count = index_manager_.count();
-
-    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    mutex_.unlock_upgrade_and_lock();
-
-    // Guard write to prevent overwriting preceding height write.
-    if (new_count > initial_count)
-    {
-        const auto create_count = new_count - initial_count;
-        index_manager_.new_records(create_count);
-        zeroize(initial_count, create_count - 1);
-    }
-
-    // Guard write to prevent subsequent zeroize from erasing.
-    const auto memory = index_manager_.get(height);
-    auto serial = make_unsafe_serializer(REMAP_ADDRESS(memory));
-    serial.write_8_bytes_little_endian(position);
-
-    mutex_.unlock();
-    ///////////////////////////////////////////////////////////////////////////
-}
-
-file_offset block_database::read_position(array_index height) const
-{
-    const auto memory = index_manager_.get(height);
-    const auto address = REMAP_ADDRESS(memory);
-    return from_little_endian_unsafe<file_offset>(address);
-}
 
 // The index of the highest existing block, independent of gaps.
 bool block_database::top(size_t& out_height) const
 {
-    const auto count = index_manager_.count();
-
-    // Guard against no genesis block.
-    if (count == 0)
-        return false;
-
-    out_height = count - 1;
-    return true;
+  sqlite3_reset(get_max_height_block_sql_);
+  sqlite3_bind_int(get_max_height_block_sql_, 1, height, SQLITE_STATIC);
+  int rc = sqlite3_step(get_max_height_block_sql_);
+  if( rc == SQLITE_ROW)
+  {
+    out_height=static_cast<uint32_t>sqlite3_column_int32(stmt, 0);
+    return true;    
+  }
+  
+  return false;
 }
 
 } // namespace database
