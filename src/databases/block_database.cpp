@@ -232,7 +232,7 @@ block_result block_database::get(sqlite3_stmt* stmt) const
     auto bits = static_cast<uint32_t>sqlite3_column_int32(stmt, 7);
     auto nonce = static_cast<uint32_t>sqlite3_column_int32(stmt, 8);
 
-    vector<hash_digest> tx_hashes;
+    std::vector<hash_digest> tx_hashes;
 
     //TODO GET TX_HASHES FROM TRANSACTION DATABASE
     /*
@@ -289,8 +289,6 @@ block_result block_database::get(sqlite3_stmt* stmt) const
  
 }
 
-
-
 void block_database::store(const block& block, size_t height)
 {
   BITCOIN_ASSERT(height <= max_uint32);
@@ -298,18 +296,18 @@ void block_database::store(const block& block, size_t height)
   
   sqlite3_reset(insert_block_stmt_);
   //static constexpr char insert_block_sql[] = "INSERT INTO blocks (hash, version, prev_block, merkle, timestamp, bits, nonce) VALUES (?1, ?2, ?3, ?4, ?5 , ?6, ?7);";
-  sqlite3_bind_text(insert_block_stmt_, 1, block.header().hash(), SQLITE_STATIC);
-  sqlite3_bind_int(insert_block_stmt_, 2, height, SQLITE_STATIC);
-  sqlite3_bind_int(insert_block_stmt_, 3, block.header().version(), SQLITE_STATIC);
-  sqlite3_bind_text(insert_block_stmt_, 4, block.header().previous_block_hash(), SQLITE_STATIC);
-  sqlite3_bind_text(insert_block_stmt_, 5, block.header().merkle(), SQLITE_STATIC);
-  sqlite3_bind_int(insert_block_stmt_, 6, block.header().timestamp(), SQLITE_STATIC);
-  sqlite3_bind_int(insert_block_stmt_, 7, block.header().bits(), SQLITE_STATIC);
-  sqlite3_bind_int(insert_block_stmt_, 8, block.header().nonce(), SQLITE_STATIC);
+  sqlite3_bind_text(insert_block_stmt_, 1, reinterpret_cast<char const*>(block.header().hash()), sizeof(hash_digest), SQLITE_STATIC);
+  sqlite3_bind_int(insert_block_stmt_, 2, height);
+  sqlite3_bind_int(insert_block_stmt_, 3, block.header().version());
+  sqlite3_bind_text(insert_block_stmt_, 4,  reinterpret_cast<char const*>(block.header().previous_block_hash()), sizeof(hash_digest) , SQLITE_STATIC);
+  sqlite3_bind_text(insert_block_stmt_, 5,  reinterpret_cast<char const*>(block.header().merkle()), sizeof(hash_digest), SQLITE_STATIC);
+  sqlite3_bind_int(insert_block_stmt_, 6, block.header().timestamp());
+  sqlite3_bind_int(insert_block_stmt_, 7, block.header().bits());
+  sqlite3_bind_int(insert_block_stmt_, 8, block.header().nonce());
   auto rc = sqlite3_step(insert_block_stmt_);
   if (rc != SQLITE_DONE)
   {
-    std::cout<<"block_database::store(const block& block, size_t height) -- Failed to Insert \n";  
+    std::cout<<"block_database::store(const block& block, size_t height) -- Failed to Insert \n";
   }
 
 }
@@ -355,7 +353,7 @@ bool block_database::top(size_t& out_height) const
   int rc = sqlite3_step(get_max_height_block_sql_);
   if( rc == SQLITE_ROW)
   {
-    out_height=static_cast<uint32_t>sqlite3_column_int32(stmt, 0);
+    out_height = static_cast<uint32_t> (sqlite3_column_int32(get_max_height_block_sql_, 0));
     return true;    
   }
   

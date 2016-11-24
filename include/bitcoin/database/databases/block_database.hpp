@@ -25,7 +25,9 @@
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database/define.hpp>
-
+#include <bitcoin/database/memory/memory_map.hpp>
+#include <bitcoin/database/primitives/record_manager.hpp>
+#include <bitcoin/database/primitives/slab_hash_table.hpp>
 #include <bitcoin/database/result/block_result.hpp>
 #include <bitcoin/database/primitives/db_connection.hpp>
 
