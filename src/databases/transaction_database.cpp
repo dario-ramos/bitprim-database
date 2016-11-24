@@ -483,6 +483,9 @@ insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,
 
     if (rc != SQLITE_DONE) {
 
+
+        std::cout << "rc: " << rc << std::endl;
+
         std::cout << "hash: " << encode_hash(hash) << std::endl;
         std::cout << "version: " << version << std::endl;
         std::cout << "locktime: " << locktime << std::endl;
@@ -492,7 +495,7 @@ insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,
         //TODO: hiding error code
         printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
         std::cout << "insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,...) -- END with Error\n";
-        return std::make_pair(false, 0);
+        return std::make_pair(false, 0ll);
     }
 
     std::cout << "insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,...) -- END OK\n";
