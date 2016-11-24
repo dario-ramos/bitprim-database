@@ -484,7 +484,7 @@ insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,
 
     if (rc != SQLITE_DONE) {
         //TODO: hiding error code
-        //printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+        printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
         std::cout << "insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,...) -- END with Error\n";
         return std::make_pair(false, 0);
     }
@@ -594,6 +594,7 @@ void transaction_database::store(size_t height, size_t position, chain::transact
     if (!res.first) {
         std::cout << "void transaction_database::store(size_t height, size_t position, chain::transaction const& tx) -- END with Error\n";
         //TODO: Fer: manipulate Error!
+        return;
     }
 
     auto txid = res.second;

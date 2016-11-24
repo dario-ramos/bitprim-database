@@ -263,3 +263,11 @@ cmake-build-debug/CMakeFiles/tools.transaction_db.dir/CXX.includecache
 cmake-build-debug/CMakeFiles/tools.transaction_db.dir/depend.internal
 cmake-build-debug/CMakeFiles/bitprim-database.dir/depend.internal.tmp
 cmake-build-debug/CMakeFiles/bitprim-database.dir/depend.make.tmp
+cmake-build-debug/CMakeFiles/bitprim-database.dir/src/memory/memory_map.cpp.o-5b7a2d32
+cmake-build-debug/CMakeFiles/bitprim-database.dir/src/primitives/record_list.cpp.o-f6d05f41
+cmake-build-debug/CMakeFiles/bitprim-database.dir/src/primitives/record_manager.cpp.o-ee3e7088
+cmake-build-debug/CMakeFiles/bitprim-database.dir/src/primitives/record_multimap_iterable.cpp.o-1869c4f6
+cmake-build-debug/CMakeFiles/bitprim-database.dir/src/primitives/record_multimap_iterator.cpp.o-cefad507
+cmake-build-debug/CMakeFiles/bitprim-database.dir/src/primitives/slab_manager.cpp.o-a6019e73
+cmake-build-debug/CMakeFiles/bitprim-database.dir/src/result/block_result.cpp.o-469daa2c
+cmake-build-debug/CMakeFiles/bitprim-database.dir/src/result/transaction_result.cpp.o-a146b020
