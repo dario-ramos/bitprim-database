@@ -286,6 +286,15 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
 
         std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 2\n";
 
+        auto ptr = sqlite3_column_text(stmt, 1);
+        printf("ptr: %p\n", (void*)ptr);
+        std::cout << "(ptr == nullptr): " << (ptr == nullptr) << std::endl;
+
+
+        auto hash_size = sqlite3_column_bytes(stmt, 1);
+        std::cout << "hash_size: " << hash_size << '\n';
+
+
         hash_digest prev_output_hash;
         memcpy(prev_output_hash.data(), sqlite3_column_text(stmt, 1), sizeof(prev_output_hash));
         auto prev_output_index = static_cast<uint32_t>(sqlite3_column_int(stmt, 2));
