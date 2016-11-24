@@ -295,6 +295,9 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
         auto script_size = sqlite3_column_bytes(stmt, 3);
         auto script_ptr = static_cast<uint8_t const*>(sqlite3_column_blob(stmt, 3));
         
+        printf("script_ptr: %p\n", (void*)script_ptr);
+        std::cout << "script_size: " << script_size << '\n';
+
         // std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
         data_chunk script_data(script_ptr, script_ptr + script_size);
         
