@@ -301,10 +301,11 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
 
         std::cout << "script_size: " << script_size << '\n';
 
-
         // std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
         data_chunk script_data(script_ptr, script_ptr + script_size);
         
+        std::cout << "after vector creation" << '\n';
+
         auto script = chain::script::factory_from_data(script_data, true);
 
         auto sequence = static_cast<uint32_t>(sqlite3_column_int(stmt, 4));
