@@ -78,6 +78,8 @@ public:
     bool flush();
 
 private:
+    bool prepare_statements();
+
     bitprim::db_connection tx_db;
 
     // Prepared Statements

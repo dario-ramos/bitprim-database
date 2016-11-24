@@ -69,8 +69,21 @@ transaction_database::transaction_database(path const& filename)
     std::cout << "transaction_database::transaction_database(path const& filename)\n";
     std::cout << "filename: " << filename << "\n";
 
+
+
+    std::cout << "transaction_database::transaction_database(path const& filename) -- END\n";
+
+}
+
+transaction_database::~transaction_database() {
+    std::cout << "transaction_database::~transaction_database()\n";
+    close();
+}
+
+bool transaction_database::prepare_statements() {
+    std::cout << "bool transaction_database::prepare_statements()\n";
     int rc;
-    
+
     rc = sqlite3_prepare_v2(tx_db.ptr(), insert_tx_sql, -1, &insert_tx_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
     std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
@@ -119,13 +132,10 @@ transaction_database::transaction_database(path const& filename)
 
     //TODO: Fer: check for errors
 
-    std::cout << "transaction_database::transaction_database(path const& filename) -- END\n";
+    std::cout << "bool transaction_database::prepare_statements() -- END\n";
 
-}
+    return true;
 
-transaction_database::~transaction_database() {
-    std::cout << "transaction_database::~transaction_database()\n";
-    close();
 }
 
 // Create.
@@ -179,6 +189,10 @@ bool transaction_database::create() {
 
     std::cout << "bool transaction_database::create() - res: " << res << '\n';
 
+    //TODO: check for errors!
+
+    res = prepare_statements();
+
     return res;
 
 //    // Resize and create require an opened file.
@@ -212,7 +226,7 @@ bool transaction_database::open() {
     std::cout << "bool transaction_database::open()\n";
 
     //TODO: Fer: Implement this. Is it necessary?
-    return true;
+    return prepare_statements();
 }
 
 // Close files.
