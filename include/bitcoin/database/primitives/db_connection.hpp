@@ -16,7 +16,14 @@ class db_connection {
 public:
     explicit
     db_connection(char const* name) {
+        std::cout << "db_connection(char const* name)\n";
+        std::cout << "name: " << name << "\n";
+
         int rc = sqlite3_open(name, &db_);
+
+        std::cout << "rc: " << rc << '\n';
+        std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+
         //TODO: Fer: do something with rc
     }
 

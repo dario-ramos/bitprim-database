@@ -67,33 +67,46 @@ transaction_database::transaction_database(path const& filename)
     // , select_txout_by_txid_stmt_()
 {
     std::cout << "transaction_database::transaction_database(path const& filename)\n";
+    std::cout << "filename: " << filename << "\n";
+
     int rc;
     
     rc = sqlite3_prepare_v2(tx_db.ptr(), insert_tx_sql, -1, &insert_tx_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), insert_txin_sql, -1, &insert_tx_input_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), insert_txout_sql, -1, &insert_tx_output_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_tx_sql, -1, &select_tx_by_hash_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_txin_sql, -1, &select_txin_by_txid_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_txout_sql, -1, &select_txout_by_txid_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), update_txout_sql, -1, &update_tx_output_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
 
     rc = sqlite3_prepare_v2(tx_db.ptr(), delete_tx_sql, -1, &delete_tx_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     rc = sqlite3_prepare_v2(tx_db.ptr(), delete_txin_sql, -1, &delete_tx_input_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     rc = sqlite3_prepare_v2(tx_db.ptr(), delete_txout_sql, -1, &delete_tx_output_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
+    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
 
     //TODO: Fer: check for errors
 
