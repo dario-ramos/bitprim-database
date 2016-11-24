@@ -217,7 +217,7 @@ bool transaction_database::open() {
 //        lookup_manager_.start();
 
 
-    std::cout << "bool transaction_database::open()\n";
+    // std::cout << "bool transaction_database::open()\n";
 
     //TODO: Fer: Implement this. Is it necessary?
     return prepare_statements();
@@ -227,7 +227,7 @@ bool transaction_database::open() {
 bool transaction_database::close() {
 //    return lookup_file_.close();
 
-    std::cout << "bool transaction_database::close()\n";
+    // std::cout << "bool transaction_database::close()\n";
 
     //TODO: Fer: Implement this. Is it necessary?
     return true;
@@ -246,7 +246,7 @@ void transaction_database::synchronize() {
 bool transaction_database::flush() {
 //    return lookup_file_.flush();
 
-    std::cout << "bool transaction_database::flush()\n";
+    // std::cout << "bool transaction_database::flush()\n";
 
     //TODO: Fer: Implement this. Is it necessary?
     //TODO: Fer: Check if I have to use some kind of Flush on SQLite
@@ -257,7 +257,7 @@ bool transaction_database::flush() {
 // ----------------------------------------------------------------------------
 
 transaction_result transaction_database::get(hash_digest const& hash) const {
-    std::cout << "transaction_result transaction_database::get(hash_digest const& hash) const\n";
+    // std::cout << "transaction_result transaction_database::get(hash_digest const& hash) const\n";
     return get(hash, max_size_t);
 }
 
@@ -272,7 +272,7 @@ void print_bytes_n(uint8_t const* f, size_t n) {
 
 
 chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
-   std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 1 - " << std::this_thread::get_id() << "\n";
+   // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 1 - " << std::this_thread::get_id() << "\n";
 
 
 
@@ -286,65 +286,59 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
     while ( (rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         // auto id = sqlite3_column_int64(stmt, 0);
 
-        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 2 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 2 - " << std::this_thread::get_id() << "\n";
+        // auto ptr = sqlite3_column_text(stmt, 1);
+        // printf("ptr: %p\n", (void*)ptr);
+        // std::cout << "(ptr == nullptr): " << (ptr == nullptr) << std::endl;
 
-        auto ptr = sqlite3_column_text(stmt, 1);
-        printf("ptr: %p\n", (void*)ptr);
-        std::cout << "(ptr == nullptr): " << (ptr == nullptr) << std::endl;
 
-
-        auto hash_size = sqlite3_column_bytes(stmt, 1);
-        std::cout << "hash_size: " << hash_size << '\n';
+        // auto hash_size = sqlite3_column_bytes(stmt, 1);
+        // std::cout << "hash_size: " << hash_size << '\n';
 
 
         hash_digest prev_output_hash;
         memcpy(prev_output_hash.data(), sqlite3_column_text(stmt, 1), sizeof(prev_output_hash));
         auto prev_output_index = static_cast<uint32_t>(sqlite3_column_int(stmt, 2));
 
-        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 3 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 3 - " << std::this_thread::get_id() << "\n";
 
 
-        // output_point(hash_digest&& hash, uint32_t index);
-        // output_point(const hash_digest& hash, uint32_t index);
         chain::output_point previous_output(prev_output_hash, prev_output_index);
 
         auto script_size = sqlite3_column_bytes(stmt, 3);
         auto script_ptr = static_cast<uint8_t const*>(sqlite3_column_blob(stmt, 3));
         
-        printf("script_ptr: %p\n", (void*)script_ptr);
-        std::cout << "script_size: " << script_size << '\n';
+        // printf("script_ptr: %p\n", (void*)script_ptr);
+        // std::cout << "script_size: " << script_size << '\n';
+        // print_bytes_n(script_ptr, script_size);
+        // std::cout << "script_size: " << script_size << '\n';
 
-        print_bytes_n(script_ptr, script_size);
-
-        std::cout << "script_size: " << script_size << '\n';
-
-        // std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
         data_chunk script_data(script_ptr, script_ptr + script_size);
         
-        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 4 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 4 - " << std::this_thread::get_id() << "\n";
 
         auto script = chain::script::factory_from_data(script_data, true);
 
-        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 5 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 5 - " << std::this_thread::get_id() << "\n";
 
         auto sequence = static_cast<uint32_t>(sqlite3_column_int(stmt, 4));
 
-        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 6 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 6 - " << std::this_thread::get_id() << "\n";
 
         // input(output_point&& previous_output, chain::script&& script, uint32_t sequence);
         // input(const output_point& previous_output, const chain::script& script, uint32_t sequence);
         chain::input in(previous_output, script, sequence);
 
-        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 7 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 7 - " << std::this_thread::get_id() << "\n";
 
         res.push_back(in);
         //TODO: implement the constructor
 //        res.emplace_back(id, prev_output_hash, prev_output_index, script, sequence);
 
-        std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 8 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 8 - " << std::this_thread::get_id() << "\n";
     }
 
-    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 9 - " << std::this_thread::get_id() << "\n";
+    // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 9 - " << std::this_thread::get_id() << "\n";
 
 //    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) -- END\n";
 
@@ -397,17 +391,17 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
 //    const auto memory = lookup_map_.find(hash);
 //    return transaction_result(memory, hash);
 
-    std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 1 - " << std::this_thread::get_id() << "\n";
+    // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 1 - " << std::this_thread::get_id() << "\n";
 
     sqlite3_reset(select_tx_by_hash_stmt_);
     sqlite3_bind_text(select_tx_by_hash_stmt_, 1, reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest), SQLITE_STATIC);
 
-    std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 2 - " << std::this_thread::get_id() << "\n";
+    // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 2 - " << std::this_thread::get_id() << "\n";
 
     int rc = sqlite3_step(select_tx_by_hash_stmt_);
     if (rc == SQLITE_ROW) {
 
-        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 3 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 3 - " << std::this_thread::get_id() << "\n";
 
 
         auto id = sqlite3_column_int64(select_tx_by_hash_stmt_, 0);
@@ -416,18 +410,18 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
         auto block_height = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 3));
         auto position = static_cast<uint32_t>(sqlite3_column_int(select_tx_by_hash_stmt_, 4));
 
-        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 4 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 4 - " << std::this_thread::get_id() << "\n";
 
 
         // input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
         auto inputs = select_inputs(tx_db.ptr(), select_txin_by_txid_stmt_, id);
 
-        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 5 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 5 - " << std::this_thread::get_id() << "\n";
 
 
         auto outputs = select_outputs(tx_db.ptr(), select_txout_by_txid_stmt_, id);
 
-        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 6 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 6 - " << std::this_thread::get_id() << "\n";
 
 
 
@@ -438,21 +432,21 @@ transaction_result transaction_database::get(hash_digest const& hash, size_t /*D
         chain::transaction tx(version, locktime, inputs, outputs);
         // tx.from_data(deserial, use_wire_encoding);
 
-        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 7 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 7 - " << std::this_thread::get_id() << "\n";
 
 
         // TODO: add hash param to deserialization to eliminate this construction.
         // return chain::transaction(std::move(tx), hash_digest(hash));
         tx = chain::transaction(std::move(tx), hash_digest(hash));
 
-        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 8 - " << std::this_thread::get_id() << "\n";
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 8 - " << std::this_thread::get_id() << "\n";
 
 
 //        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END OK\n";
 
         return transaction_result(true, hash, tx, block_height, position);
     } else if (rc == SQLITE_DONE) {
-        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END no data found\n";
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END no data found\n";
         std::cout << "hash: " << encode_hash(hash) << std::endl;
         return transaction_result(false, hash, chain::transaction(), uint32_t(), uint32_t());
     } else {
@@ -620,8 +614,8 @@ insert_result insert_tx_input(sqlite3* db, sqlite3_stmt* stmt,
     sqlite3_bind_text(stmt, 2, reinterpret_cast<char const*>(prev_output_hash.data()), sizeof(hash_digest), SQLITE_STATIC);
     sqlite3_bind_int(stmt, 3, prev_output_index);
        
-    printf("script.data(): %p\n", (void*)script.data());
-    std::cout << "script.size(): " << script.size() << '\n';
+    // printf("script.data(): %p\n", (void*)script.data());
+    // std::cout << "script.size(): " << script.size() << '\n';
 
     sqlite3_bind_blob(stmt, 4, script.data(), script.size(), SQLITE_STATIC);
     sqlite3_bind_int(stmt, 5, sequence);
