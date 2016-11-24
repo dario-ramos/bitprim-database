@@ -48,17 +48,6 @@ static constexpr char select_tx_sql[] = "SELECT id, version, locktime, block_hei
 static constexpr char select_txin_sql[] = "SELECT id, prev_output_hash, prev_output_index, script, sequence FROM input WHERE transaction_id = ?1 ORDER BY id;";
 static constexpr char select_txout_sql[] = "SELECT id, idx, amount, script, spender_height FROM output WHERE transaction_id = ?1 ORDER BY id;";
 
-
-//        tx_db.exec("CREATE TABLE output ( "
-//        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-//        "transaction_id INTEGER NOT NULL, "
-//        "idx INTEGER NOT NULL, "
-//        "amount INTEGER NOT NULL, "
-//        "script BLOB,"
-//        "spender_height INTEGER NOT NULL );", [&res](int reslocal, std::string const& error_msg){
-
-
-
 // static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE id = ?2;";
 static constexpr char update_txout_sql[] = "UPDATE output SET spender_height = ?1 WHERE transaction_id = ?2 AND idx = ?3;";
 
@@ -272,6 +261,16 @@ transaction_result transaction_database::get(hash_digest const& hash) const {
     return get(hash, max_size_t);
 }
 
+void print_bytes_n(uint8_t const* f, size_t n) {
+    while (n != 0) {
+        printf("%02x", *f);
+        ++f;
+        --n;
+    }
+    printf("\n");
+}
+
+
 chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) {
 //    std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)\n";
 
@@ -297,6 +296,11 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
         
         printf("script_ptr: %p\n", (void*)script_ptr);
         std::cout << "script_size: " << script_size << '\n';
+
+        print_bytes_n(script_ptr, script_size);
+
+        std::cout << "script_size: " << script_size << '\n';
+
 
         // std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
         data_chunk script_data(script_ptr, script_ptr + script_size);
@@ -569,7 +573,11 @@ insert_result insert_tx_input(sqlite3* db, sqlite3_stmt* stmt,
     sqlite3_bind_int64(stmt, 1, tx_id);
     sqlite3_bind_text(stmt, 2, reinterpret_cast<char const*>(prev_output_hash.data()), sizeof(hash_digest), SQLITE_STATIC);
     sqlite3_bind_int(stmt, 3, prev_output_index);
-    sqlite3_bind_blob(stmt,4, script.data(), script.size(), SQLITE_STATIC);
+       
+    printf("script.data(): %p\n", (void*)script.data());
+    std::cout << "script.size(): " << script.size() << '\n';
+
+    sqlite3_bind_blob(stmt, 4, script.data(), script.size(), SQLITE_STATIC);
     sqlite3_bind_int(stmt, 5, sequence);
 
     auto rc = sqlite3_step(stmt);
