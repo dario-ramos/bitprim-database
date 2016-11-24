@@ -55,7 +55,6 @@ static constexpr char get_max_height_block_sql[] = "SELECT max(height) FROM bloc
 
 static constexpr char exists_block_by_height_sql[] = "SELECT 1 FROM blocks WHERE id= ?1;";
 
-static constexpr char delete_block_sql[] = "DELETE FROM blocks WHERE hash = ?1;";
 static constexpr char delete_block_sql[] = "DELETE FROM blocks WHERE height = ?1;";
 
 /*
@@ -88,6 +87,7 @@ block_database::~block_database()
 // Initialize files and open.
 bool block_database::create()
 {
+    bool res = true;
     block_db.exec("CREATE TABLE blocks( "
             "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
             "hash TEXT NOT NULL UNIQUE, "
@@ -188,7 +188,7 @@ bool block_database::flush()
 bool block_database::exists(size_t height) const
 {
   sqlite3_reset(exists_block_by_height_stmt_);
-  sqlite3_bind_int(exists_block_by_height_stmt_, 1, height, SQLITE_STATIC);
+  sqlite3_bind_int(exists_block_by_height_stmt_, 1, height);
   int rc = sqlite3_step(exists_block_by_height_stmt_);
   return rc == SQLITE_ROW;
 }
@@ -196,24 +196,27 @@ bool block_database::exists(size_t height) const
 block_result block_database::get(size_t height) const
 {
   sqlite3_reset(select_block_by_height_stmt_);
-  sqlite3_bind_int(select_block_by_height_stmt_, 1, height, SQLITE_STATIC);
+  sqlite3_bind_int(select_block_by_height_stmt_, 1, height);
   return get(select_block_by_height_stmt_);
 }
 
 block_result block_database::get(const hash_digest& hash) const
 {
   sqlite3_reset(select_block_by_hash_stmt_);
-  sqlite3_bind_text(select_block_by_hash_stmt_, 1, hash, SQLITE_STATIC);
+  sqlite3_bind_text(select_block_by_hash_stmt_, 4,  reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest) , SQLITE_STATIC);
   return get(select_block_by_hash_stmt_);
 }
 
 block_result block_database::get(sqlite3_stmt* stmt) const
 {  
   int rc = sqlite3_step(stmt);
+
+  std::vector<hash_digest> tx_hashes;
+
   if (rc == SQLITE_ROW) 
   {
 
-    auto id = sqlite3_column_int32(stmt, 0);
+    auto id = sqlite3_column_int(stmt, 0);
     
     hash_digest hash;
     memcpy(hash.data(), sqlite3_column_text(stmt, 1), sizeof(hash));
@@ -228,11 +231,11 @@ block_result block_database::get(sqlite3_stmt* stmt) const
     hash_digest merkle;
     memcpy(merkle.data(), sqlite3_column_text(stmt, 5), sizeof(merkle));
 
-    auto timestamp = static_cast<uint32_t>sqlite3_column_int32(stmt, 6);
-    auto bits = static_cast<uint32_t>sqlite3_column_int32(stmt, 7);
-    auto nonce = static_cast<uint32_t>sqlite3_column_int32(stmt, 8);
+    auto timestamp = static_cast<uint32_t>(sqlite3_column_int(stmt, 6));
+    auto bits = static_cast<uint32_t> (sqlite3_column_int(stmt, 7));
+    auto nonce = static_cast<uint32_t>(sqlite3_column_int(stmt, 8));
 
-    std::vector<hash_digest> tx_hashes;
+
 
     //TODO GET TX_HASHES FROM TRANSACTION DATABASE
     /*
@@ -245,7 +248,7 @@ block_result block_database::get(sqlite3_stmt* stmt) const
       vector<hash_digest> transaction_database::get_transactions_from_block(size_t height)
       {
         sqlite3_reset(select_transactions_from_block_stmt_);
-        sqlite3_bind_int32(select_transactions_from_block_stmt_, 1, height, SQLITE_STATIC);
+        sqlite3_bind_int(select_transactions_from_block_stmt_, 1, height);
         int rc = sqlite3_step(select_transactions_from_block_stmt_);
         vector<hash_digest> transaction_hashes;
         if(rc == SQLITE_ROW)
@@ -278,13 +281,13 @@ block_result block_database::get(sqlite3_stmt* stmt) const
 
       std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END no data found\n";
       hash_digest hash;
-      return block_result(false, uint32_t(), hash, chain::header());
+      return block_result(false, uint32_t(), hash, chain::header(),tx_hashes);
 
     } else 
     {
       std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END with error\n";
       hash_digest hash;
-      return block_result(false, uint32_t(), hash, chain::header());
+      return block_result(false, uint32_t(), hash, chain::header(),tx_hashes);
     }
  
 }
@@ -296,11 +299,11 @@ void block_database::store(const block& block, size_t height)
   
   sqlite3_reset(insert_block_stmt_);
   //static constexpr char insert_block_sql[] = "INSERT INTO blocks (hash, version, prev_block, merkle, timestamp, bits, nonce) VALUES (?1, ?2, ?3, ?4, ?5 , ?6, ?7);";
-  sqlite3_bind_text(insert_block_stmt_, 1, reinterpret_cast<char const*>(block.header().hash()), sizeof(hash_digest), SQLITE_STATIC);
+  sqlite3_bind_text(insert_block_stmt_, 1, reinterpret_cast<char const*>(block.header().hash().data()), sizeof(hash_digest), SQLITE_STATIC);
   sqlite3_bind_int(insert_block_stmt_, 2, height);
   sqlite3_bind_int(insert_block_stmt_, 3, block.header().version());
-  sqlite3_bind_text(insert_block_stmt_, 4,  reinterpret_cast<char const*>(block.header().previous_block_hash()), sizeof(hash_digest) , SQLITE_STATIC);
-  sqlite3_bind_text(insert_block_stmt_, 5,  reinterpret_cast<char const*>(block.header().merkle()), sizeof(hash_digest), SQLITE_STATIC);
+  sqlite3_bind_text(insert_block_stmt_, 4,  reinterpret_cast<char const*>(block.header().previous_block_hash().data()), sizeof(hash_digest) , SQLITE_STATIC);
+  sqlite3_bind_text(insert_block_stmt_, 5,  reinterpret_cast<char const*>(block.header().merkle().data()), sizeof(hash_digest), SQLITE_STATIC);
   sqlite3_bind_int(insert_block_stmt_, 6, block.header().timestamp());
   sqlite3_bind_int(insert_block_stmt_, 7, block.header().bits());
   sqlite3_bind_int(insert_block_stmt_, 8, block.header().nonce());
@@ -348,12 +351,11 @@ bool block_database::unlink(size_t from_height)
 // The index of the highest existing block, independent of gaps.
 bool block_database::top(size_t& out_height) const
 {
-  sqlite3_reset(get_max_height_block_sql_);
-  sqlite3_bind_int(get_max_height_block_sql_, 1, height, SQLITE_STATIC);
-  int rc = sqlite3_step(get_max_height_block_sql_);
+  sqlite3_reset(get_max_height_block_stmt_);
+  int rc = sqlite3_step(get_max_height_block_stmt_);
   if( rc == SQLITE_ROW)
   {
-    out_height = static_cast<uint32_t> (sqlite3_column_int32(get_max_height_block_sql_, 0));
+    out_height = static_cast<uint32_t> (sqlite3_column_int(get_max_height_block_stmt_, 0));
     return true;    
   }
   

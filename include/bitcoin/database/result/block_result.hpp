@@ -37,7 +37,7 @@ public:
     //block_result(const memory_ptr slab, hash_digest&& hash);
     //block_result(const memory_ptr slab, const hash_digest& hash);
 
-    block_result(bool valid, uint32_t id, hash_digest hash, chain::header const& block);
+    block_result(bool valid, uint32_t id, hash_digest hash, chain::header const& block, std::vector<hash_digest>);
 
     /// True if this block result is valid (found).
     operator bool() const;

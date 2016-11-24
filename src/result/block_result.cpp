@@ -93,7 +93,7 @@ hash_digest block_result::transaction_hash(size_t index) const
 {
     if(index<=tx_hashes_.size())
     {
-      return tx_hashes_.elementAt(index);
+      return tx_hashes_.at(index);
     } else
     { 
       hash_digest hash;
