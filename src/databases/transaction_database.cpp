@@ -317,7 +317,7 @@ chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id)
         
         // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 4 - " << std::this_thread::get_id() << "\n";
 
-        auto script = chain::script::factory_from_data(script_data, true);
+        auto script = chain::script::factory_from_data(script_data, false);
 
         // std::cout << "chain::input::list select_inputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_id) - 5 - " << std::this_thread::get_id() << "\n";
 
@@ -364,7 +364,7 @@ chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_i
         auto script_ptr = static_cast<uint8_t const*>(sqlite3_column_blob(stmt, 3));
         // std::vector<uint8_t> script_data(script_ptr, script_ptr + script_size);
         data_chunk script_data(script_ptr, script_ptr + script_size);
-        auto script = chain::script::factory_from_data(script_data, true);
+        auto script = chain::script::factory_from_data(script_data, false);
 
         auto spender_height = static_cast<uint32_t>(sqlite3_column_int(stmt, 4));
 
