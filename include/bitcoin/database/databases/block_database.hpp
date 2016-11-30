@@ -25,11 +25,12 @@
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database/define.hpp>
-#include <bitcoin/database/memory/memory_map.hpp>
-#include <bitcoin/database/primitives/record_manager.hpp>
-#include <bitcoin/database/primitives/slab_hash_table.hpp>
-#include <bitcoin/database/result/block_result.hpp>
+// #include <bitcoin/database/memory/memory_map.hpp>
+// #include <bitcoin/database/primitives/record_manager.hpp>
+// #include <bitcoin/database/primitives/slab_hash_table.hpp>
+#include <bitcoin/database/databases/transaction_database.hpp>
 #include <bitcoin/database/primitives/db_connection.hpp>
+#include <bitcoin/database/result/block_result.hpp>
 
 namespace libbitcoin {
 namespace database {
@@ -39,14 +40,14 @@ namespace database {
 class BCD_API block_database
 {
 public:
-    typedef std::vector<size_t> heights;
-    typedef boost::filesystem::path path;
-    typedef std::shared_ptr<shared_mutex> mutex_ptr;
+    using heights = std::vector<size_t>;
+    using path = boost::filesystem::path;
+    // using mutex_ptr = std::shared_ptr<shared_mutex>;
 
-    static const file_offset empty;
+    // static const file_offset empty;
 
     /// Construct the database.
-    block_database(const path& map_filename);
+    block_database(transaction_database& transaction_db, path const& map_filename);
 
     /// Close the database (all threads must first be stopped).
     ~block_database();
@@ -93,6 +94,7 @@ private:
 
     bool prepare_statements();
 
+    transaction_database& transaction_db_;
     bitprim::db_connection block_db;
 
     // Prepared Statements
