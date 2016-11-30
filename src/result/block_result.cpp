@@ -44,24 +44,14 @@ static constexpr auto bits_offset = time_offset + time_size;
 static constexpr auto height_offset = bits_offset + bits_size + nonce_size;
 static constexpr auto count_offset = height_offset + height_size;
 
-block_result::block_result(const memory_ptr slab)
-  : slab_(slab), hash_(null_hash)
-{
-}
-
-block_result::block_result(const memory_ptr slab, hash_digest&& hash)
-  : slab_(slab), hash_(std::move(hash))
-{
-}
-
-block_result::block_result(const memory_ptr slab, const hash_digest& hash)
-  : slab_(slab), hash_(hash)
+block_result::block_result(bool valid, uint32_t id, hash_digest hash, chain::header const& block, std::vector<hash_digest> tx_hashes)
+  : valid_(valid), id_(id), hash_(hash),block_header_(block),tx_hashes_(tx_hashes)
 {
 }
 
 block_result::operator bool() const
 {
-    return slab_ != nullptr;
+  return valid_;
 }
 
 const hash_digest& block_result::hash() const
@@ -71,64 +61,44 @@ const hash_digest& block_result::hash() const
 
 chain::header block_result::header() const
 {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    auto deserial = make_unsafe_deserializer(memory);
-
-    // READ THE HEADER
-    chain::header header;
-    header.from_data(deserial);
-
-    // TODO: add hash param to deserialization to eliminate this move.
-    return chain::header(std::move(header), hash_digest(hash_));
+  return block_header_;
 }
 
 size_t block_result::height() const
 {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    return from_little_endian_unsafe<uint32_t>(memory + height_offset);
+    return id_;
 }
 
 uint32_t block_result::bits() const
 {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    return from_little_endian_unsafe<uint32_t>(memory + bits_offset);
+    return block_header_.bits();
 }
 
 uint32_t block_result::timestamp() const
 {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    return from_little_endian_unsafe<uint32_t>(memory + time_offset);
+    return block_header_.timestamp();
 }
 
 uint32_t block_result::version() const
 {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    return from_little_endian_unsafe<uint32_t>(memory + version_offset);
+    return block_header_.version();
 }
 
 size_t block_result::transaction_count() const
 {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    auto deserial = make_unsafe_deserializer(memory + count_offset);
-    return deserial.read_size_little_endian();
+  return tx_hashes_.size();
 }
 
 hash_digest block_result::transaction_hash(size_t index) const
 {
-    BITCOIN_ASSERT(slab_);
-    const auto memory = REMAP_ADDRESS(slab_);
-    auto deserial = make_unsafe_deserializer(memory + count_offset);
-    const auto tx_count = deserial.read_size_little_endian();
-
-    BITCOIN_ASSERT(index < tx_count);
-    deserial.skip(index * hash_size);
-    return deserial.read_hash();
+    if(index<=tx_hashes_.size())
+    {
+      return tx_hashes_.at(index);
+    } else
+    { 
+      hash_digest hash;
+      return hash;
+    } 
 }
 
 } // namespace database

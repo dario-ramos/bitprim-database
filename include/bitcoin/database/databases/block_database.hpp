@@ -29,6 +29,7 @@
 #include <bitcoin/database/primitives/record_manager.hpp>
 #include <bitcoin/database/primitives/slab_hash_table.hpp>
 #include <bitcoin/database/result/block_result.hpp>
+#include <bitcoin/database/primitives/db_connection.hpp>
 
 namespace libbitcoin {
 namespace database {
@@ -45,8 +46,7 @@ public:
     static const file_offset empty;
 
     /// Construct the database.
-    block_database(const path& map_filename, const path& index_filename,
-        size_t buckets, size_t expansion, mutex_ptr mutex=nullptr);
+    block_database(const path& map_filename);
 
     /// Close the database (all threads must first be stopped).
     ~block_database();
@@ -69,6 +69,8 @@ public:
     /// Fetch block by hash using the hashtable.
     block_result get(const hash_digest& hash) const;
 
+    block_result get(sqlite3_stmt* stmt) const;
+
     /// Store a block in the database.
     void store(const chain::block& block, size_t height);
 
@@ -88,33 +90,22 @@ public:
     bool top(size_t& out_height) const;
 
 private:
-    typedef slab_hash_table<hash_digest> slab_map;
 
-    /// Zeroize the specfied index positions.
-    void zeroize(array_index first, array_index count);
+    bool prepare_statements();
 
-    /// Write block hash table position into the block index.
-    void write_position(file_offset position, array_index height);
+    bitprim::db_connection block_db;
 
-    /// Use block index to get block hash table position from height.
-    file_offset read_position(array_index height) const;
+    // Prepared Statements
+    sqlite3_stmt* insert_block_stmt_;
+       
+    sqlite3_stmt* select_block_by_hash_stmt_;
+    sqlite3_stmt* select_block_by_height_stmt_;
 
-    // The starting size of the hash table, used by create.
-    const size_t initial_map_file_size_;
+    sqlite3_stmt* exists_block_by_height_stmt_;
+    sqlite3_stmt* get_max_height_block_stmt_;
 
-    /// Hash table used for looking up blocks by hash.
-    memory_map lookup_file_;
-    slab_hash_table_header lookup_header_;
-    slab_manager lookup_manager_;
-    slab_map lookup_map_;
+    sqlite3_stmt* delete_block_stmt_;
 
-    /// Table used for looking up blocks by height.
-    /// Resolves to a position within the slab.
-    memory_map index_file_;
-    record_manager index_manager_;
-
-    // Guard against concurrent update of a range of block indexes.
-    upgrade_mutex mutex_;
 };
 
 } // namespace database

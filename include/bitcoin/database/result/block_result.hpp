@@ -33,9 +33,11 @@ namespace database {
 class BCD_API block_result
 {
 public:
-    block_result(const memory_ptr slab);
-    block_result(const memory_ptr slab, hash_digest&& hash);
-    block_result(const memory_ptr slab, const hash_digest& hash);
+    //block_result(const memory_ptr slab);
+    //block_result(const memory_ptr slab, hash_digest&& hash);
+    //block_result(const memory_ptr slab, const hash_digest& hash);
+
+    block_result(bool valid, uint32_t id, hash_digest hash, chain::header const& block, std::vector<hash_digest>);
 
     /// True if this block result is valid (found).
     operator bool() const;
@@ -65,8 +67,12 @@ public:
     hash_digest transaction_hash(size_t index) const;
 
 private:
-    const memory_ptr slab_;
+    bool valid_;
     const hash_digest hash_;
+    const uint32_t id_;
+    chain::header block_header_;
+    std::vector<hash_digest> tx_hashes_;
+
 };
 
 } // namespace database
