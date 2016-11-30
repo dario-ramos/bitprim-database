@@ -153,14 +153,13 @@ void data_base::start()
 {
     // TODO: parameterize initial file sizes as record count or slab bytes?
 
-    blocks_ = std::make_shared<block_database>(block_table);
-
     // transactions_ = std::make_shared<transaction_database>(transaction_table,
     //     settings_.transaction_table_buckets, settings_.file_growth_rate,
     //     mutex_);
 
     transactions_ = std::make_shared<transaction_database>(transaction_table);
 
+    blocks_ = std::make_shared<block_database>(*transactions_, block_table);
 
     if (use_indexes)
     {

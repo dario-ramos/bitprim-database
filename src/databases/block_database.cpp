@@ -22,7 +22,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <bitcoin/bitcoin.hpp>
-#include <bitcoin/database/memory/memory.hpp>
+// #include <bitcoin/database/memory/memory.hpp>
 #include <bitcoin/database/result/block_result.hpp>
 
 namespace libbitcoin {
@@ -31,10 +31,10 @@ namespace database {
 using namespace bc::chain;
 
 // Valid file offsets should never be zero.
-const file_offset block_database::empty = 0;
+// const file_offset block_database::empty = 0;
 
-static constexpr auto index_header_size = 0u;
-static constexpr auto index_record_size = sizeof(file_offset);
+// static constexpr auto index_header_size = 0u;
+// static constexpr auto index_record_size = sizeof(file_offset);
 
 // Record format:
 // main:
@@ -70,14 +70,14 @@ static constexpr char delete_block_sql[] = "DELETE FROM blocks WHERE height = ?1
 */
 
 // Blocks uses a hash table and an array index, both O(1).
-block_database::block_database(const path& filename)
-  : block_db(filename.c_str())
+block_database::block_database(transaction_database& transaction_db, path const& filename)
+  : transaction_db_(transaction_db)
+  , block_db(filename.c_str())
 {
     prepare_statements();
 }
 
-block_database::~block_database()
-{
+block_database::~block_database() {
     close();
 }
 
@@ -157,15 +157,13 @@ bool block_database::prepare_statements() {
 // ----------------------------------------------------------------------------
 
 // Start files and primitives.
-bool block_database::open()
-{
+bool block_database::open() {
   std::cout << "bool block_database::open()\n";
   return prepare_statements();
 }
 
 // Close files.
-bool block_database::close()
-{
+bool block_database::close() {
     std::cout << "bool block_database::close()\n";
     return true;
 }
@@ -173,42 +171,36 @@ bool block_database::close()
 // Commit latest inserts.
 void block_database::synchronize()
 {
-
 }
 
 // Flush the memory maps to disk.
-bool block_database::flush()
-{
+bool block_database::flush() {
   return true;
 }
 
 // Queries.
 // ----------------------------------------------------------------------------
 
-bool block_database::exists(size_t height) const
-{
+bool block_database::exists(size_t height) const {
   sqlite3_reset(exists_block_by_height_stmt_);
   sqlite3_bind_int(exists_block_by_height_stmt_, 1, height);
   int rc = sqlite3_step(exists_block_by_height_stmt_);
   return rc == SQLITE_ROW;
 }
 
-block_result block_database::get(size_t height) const
-{
+block_result block_database::get(size_t height) const {
   sqlite3_reset(select_block_by_height_stmt_);
   sqlite3_bind_int(select_block_by_height_stmt_, 1, height);
   return get(select_block_by_height_stmt_);
 }
 
-block_result block_database::get(const hash_digest& hash) const
-{
+block_result block_database::get(const hash_digest& hash) const {
   sqlite3_reset(select_block_by_hash_stmt_);
   sqlite3_bind_text(select_block_by_hash_stmt_, 4,  reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest) , SQLITE_STATIC);
   return get(select_block_by_hash_stmt_);
 }
 
-block_result block_database::get(sqlite3_stmt* stmt) const
-{  
+block_result block_database::get(sqlite3_stmt* stmt) const {  
   int rc = sqlite3_step(stmt);
 
   std::vector<hash_digest> tx_hashes;
@@ -272,28 +264,24 @@ block_result block_database::get(sqlite3_stmt* stmt) const
 
     // tx_hashes = transaction_database::get_transactions_from_block(height);
 
-    chain::header block_header(version,prev_block, merkle, timestamp, bits, nonce);
-    return block_result(true, height,hash, block_header,tx_hashes);
+    chain::header block_header(version, prev_block, merkle, timestamp, bits, nonce);
+    return block_result(true, height, hash, block_header, tx_hashes);
 
 
-  } else if (rc == SQLITE_DONE) 
-    {
+  } else if (rc == SQLITE_DONE) {
 
-      std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END no data found\n";
-      hash_digest hash;
-      return block_result(false, uint32_t(), hash, chain::header(),tx_hashes);
+    std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END no data found\n";
+    hash_digest hash;
+    return block_result(false, uint32_t(), hash, chain::header(), tx_hashes);
 
-    } else 
-    {
-      std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END with error\n";
-      hash_digest hash;
-      return block_result(false, uint32_t(), hash, chain::header(),tx_hashes);
-    }
- 
+  } else {
+    std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END with error\n";
+    hash_digest hash;
+    return block_result(false, uint32_t(), hash, chain::header(), tx_hashes);
+  }
 }
 
-void block_database::store(const block& block, size_t height)
-{
+void block_database::store(const block& block, size_t height) {
   BITCOIN_ASSERT(height <= max_uint32);
   const auto height32 = static_cast<uint32_t>(height);
   
@@ -308,11 +296,10 @@ void block_database::store(const block& block, size_t height)
   sqlite3_bind_int(insert_block_stmt_, 7, block.header().bits());
   sqlite3_bind_int(insert_block_stmt_, 8, block.header().nonce());
   auto rc = sqlite3_step(insert_block_stmt_);
-  if (rc != SQLITE_DONE)
-  {
+  
+  if (rc != SQLITE_DONE) {
     std::cout<<"block_database::store(const block& block, size_t height) -- Failed to Insert \n";
   }
-
 }
 
 bool block_database::gaps(heights& out_gaps) const
@@ -349,13 +336,13 @@ bool block_database::unlink(size_t from_height)
 
 
 // The index of the highest existing block, independent of gaps.
-bool block_database::top(size_t& out_height) const
-{
+bool block_database::top(size_t& out_height) const {
+
   sqlite3_reset(get_max_height_block_stmt_);
   int rc = sqlite3_step(get_max_height_block_stmt_);
-  if( rc == SQLITE_ROW)
-  {
-    out_height = static_cast<uint32_t> (sqlite3_column_int(get_max_height_block_stmt_, 0));
+  
+  if (rc == SQLITE_ROW) {
+    out_height = static_cast<uint32_t>(sqlite3_column_int(get_max_height_block_stmt_, 0));
     return true;    
   }
   

@@ -44,6 +44,7 @@ static constexpr char insert_txout_sql[] = "INSERT INTO output (transaction_id, 
 
 // static constexpr char select_tx_sql[] = "SELECT id, version, locktime, block_height, position FROM transactions WHERE hash = ?1 ORDER BY id;";
 static constexpr char select_tx_sql[] = "SELECT id, version, locktime, block_height, position FROM transactions WHERE hash = ?1;";
+static constexpr char select_tx_from_block_sql[] = "SELECT hash FROM transactions WHERE block_height = ?1 ORDER BY position;";
 
 static constexpr char select_txin_sql[] = "SELECT id, prev_output_hash, prev_output_index, script, sequence FROM input WHERE transaction_id = ?1 ORDER BY id;";
 static constexpr char select_txout_sql[] = "SELECT id, idx, amount, script, spender_height FROM output WHERE transaction_id = ?1 ORDER BY id;";
@@ -97,6 +98,16 @@ bool transaction_database::prepare_statements() {
     std::cout << "rc: " << rc << '\n';
 //    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
     printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
+
+
+    rc = sqlite3_prepare_v2(tx_db.ptr(), select_tx_from_block_sql, -1, &select_tx_by_block_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
+
+
+
+
     rc = sqlite3_prepare_v2(tx_db.ptr(), select_txin_sql, -1, &select_txin_by_txid_stmt_, NULL);
     std::cout << "rc: " << rc << '\n';
 //    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
