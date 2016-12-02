@@ -203,12 +203,12 @@ block_result block_database::get(const hash_digest& hash) const {
 block_result block_database::get(sqlite3_stmt* stmt) const {  
   int rc = sqlite3_step(stmt);
 
-  std::vector<hash_digest> tx_hashes;
+//  std::vector<hash_digest> tx_hashes;
 
   if (rc == SQLITE_ROW) 
   {
 
-    auto id = sqlite3_column_int(stmt, 0);
+//    auto id = sqlite3_column_int(stmt, 0);
     
     hash_digest hash;
     memcpy(hash.data(), sqlite3_column_text(stmt, 1), sizeof(hash));
@@ -227,41 +227,7 @@ block_result block_database::get(sqlite3_stmt* stmt) const {
     auto bits = static_cast<uint32_t> (sqlite3_column_int(stmt, 7));
     auto nonce = static_cast<uint32_t>(sqlite3_column_int(stmt, 8));
 
-
-
-    //TODO GET TX_HASHES FROM TRANSACTION DATABASE
-    /*
-      static constexpr char select_transactions_from_block_sql[] = "SELECT hash FROM transactions WHERE block_height = ?1 ORDER BY position;";
-      
-      rc = sqlite3_prepare_v2(tx_db.ptr(), select_transactions_from_block_sql, -1, &select_transactions_from_block_stmt_, NULL);
-      std::cout << "rc: " << rc << '\n';
-      printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
-      
-      vector<hash_digest> transaction_database::get_transactions_from_block(size_t height)
-      {
-        sqlite3_reset(select_transactions_from_block_stmt_);
-        sqlite3_bind_int(select_transactions_from_block_stmt_, 1, height);
-        int rc = sqlite3_step(select_transactions_from_block_stmt_);
-        vector<hash_digest> transaction_hashes;
-        if(rc == SQLITE_ROW)
-        {
-          while(rc == SQLITE_ROW)
-          {
-            hash_digest tx_hash;
-            memcpy(tx_hash.data(), sqlite3_column_text(stmt, 0), sizeof(tx_hash));
-            transaction_hashes.push_back(tx_hash);
-          }
-        else 
-          {
-          printf("ERROR: %s\n", sqlite3_errmsg(tx_db.ptr()));
-          }
-        }
-        
-        return transaction_hashes;
-      }
-    
-    */
-
+    auto tx_hashes = transaction_db_.get_transactions_from_block(height);
     // tx_hashes = transaction_database::get_transactions_from_block(height);
 
     chain::header block_header(version, prev_block, merkle, timestamp, bits, nonce);
@@ -269,19 +235,17 @@ block_result block_database::get(sqlite3_stmt* stmt) const {
 
 
   } else if (rc == SQLITE_DONE) {
-
     std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END no data found\n";
     hash_digest hash;
-    return block_result(false, uint32_t(), hash, chain::header(), tx_hashes);
-
+    return block_result(false, uint32_t(), hash, chain::header(), std::vector<hash_digest>{});
   } else {
     std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END with error\n";
     hash_digest hash;
-    return block_result(false, uint32_t(), hash, chain::header(), tx_hashes);
+    return block_result(false, uint32_t(), hash, chain::header(), std::vector<hash_digest>{});
   }
 }
 
-void block_database::store(const block& block, size_t height) {
+void block_database::store(block const& block, size_t height) {
   BITCOIN_ASSERT(height <= max_uint32);
   const auto height32 = static_cast<uint32_t>(height);
   

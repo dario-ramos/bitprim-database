@@ -30,13 +30,6 @@ namespace database {
 
 using namespace bc::chain;
 
-static const auto use_wire_encoding = false;
-//static constexpr auto value_size = sizeof(uint64_t);
-//static constexpr auto height_size = sizeof(uint32_t);
-//static constexpr auto version_size = sizeof(uint32_t);
-//static constexpr auto locktime_size = sizeof(uint32_t);
-//static constexpr auto position_size = sizeof(uint32_t);
-//static constexpr auto version_lock_size = version_size + locktime_size;
 
 static constexpr char insert_tx_sql[] = "INSERT INTO transactions (hash, version, locktime, block_height, position) VALUES (?1, ?2, ?3, ?4, ?5);";
 static constexpr char insert_txin_sql[] = "INSERT INTO input (transaction_id, prev_output_hash, prev_output_index, script, sequence) VALUES (?1, ?2, ?3, ?4, ?5);";
@@ -222,15 +215,8 @@ bool transaction_database::create() {
 
 // Start files and primitives.
 bool transaction_database::open() {
-//    return
-//        lookup_file_.open() &&
-//        lookup_header_.start() &&
-//        lookup_manager_.start();
-
-
     // std::cout << "bool transaction_database::open()\n";
 
-    //TODO: Fer: Implement this. Is it necessary?
     return prepare_statements();
 }
 
@@ -393,6 +379,26 @@ chain::output::list select_outputs(sqlite3* db, sqlite3_stmt* stmt, int64_t tx_i
     return res;
 }
 
+
+std::vector<hash_digest> transaction_database::get_transactions_from_block(uint32_t height) const {
+
+    sqlite3_reset(select_tx_by_block_stmt_);
+    sqlite3_bind_int(select_tx_by_block_stmt_, 1, height);
+
+    std::vector<hash_digest> tx_hashes;
+
+    int rc;
+    while ( (rc = sqlite3_step(select_tx_by_block_stmt_)) == SQLITE_ROW) {
+
+        hash_digest hash;
+        memcpy(hash.data(), sqlite3_column_text(select_tx_by_block_stmt_, 0), sizeof(hash));
+
+        tx_hashes.push_back(hash);
+
+    }
+
+    return tx_hashes;
+}
 
 transaction_result transaction_database::get(hash_digest const& hash, size_t /*DEBUG_ONLY(fork_height)*/) const {
     // TODO: use lookup_map_ to search a set of transactions in height order,

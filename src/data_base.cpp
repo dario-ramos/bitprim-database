@@ -163,9 +163,7 @@ void data_base::start()
 
     if (use_indexes)
     {
-        spends_ = std::make_shared<spend_database>(spend_table,
-            settings_.spend_table_buckets, settings_.file_growth_rate,
-            mutex_);
+        spends_ = std::make_shared<spend_database>(spend_table);
 
         // unspents_ = std::make_shared<unspent_database_v2>(unspent_table, "unspent_table", mutex_);
 

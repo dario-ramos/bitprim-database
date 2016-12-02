@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 
     string_list args;
     const std::string map_filename = argv[2];
-    const std::string rows_filename = argv[3];
+    const std::string tx_filename = argv[3];
 
     for (int i = 4; i < argc; ++i)
         args.push_back(argv[i]);
@@ -155,10 +155,11 @@ int main(int argc, char** argv)
     if (command == "initialize_new")
     {
         store::create(map_filename);
-        store::create(rows_filename);
+        store::create(tx_filename);
     }
 
-    block_database db(map_filename, rows_filename, 1000, 50);
+    transaction_database txdb(tx_filename);
+    block_database db(txdb, map_filename);
 
     if (command == "initialize_new")
     {

@@ -25,21 +25,22 @@
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database/define.hpp>
-#include <bitcoin/database/primitives/record_hash_table.hpp>
-#include <bitcoin/database/memory/memory_map.hpp>
+
+#include <bitcoin/database/primitives/db_connection.hpp>
+
 
 namespace libbitcoin {
 namespace database {
 
-struct BCD_API spend_statinfo
-{
-    /// Number of buckets used in the hashtable.
-    /// load factor = rows / buckets
-    const size_t buckets;
-
-    /// Total number of spend rows.
-    const size_t rows;
-};
+//struct BCD_API spend_statinfo
+//{
+//    /// Number of buckets used in the hashtable.
+//    /// load factor = rows / buckets
+//    const size_t buckets;
+//
+//    /// Total number of spend rows.
+//    const size_t rows;
+//};
 
 /// This enables you to lookup the spend of an output point, returning
 /// the input point. It is a simple map.
@@ -47,11 +48,9 @@ class BCD_API spend_database
 {
 public:
     typedef boost::filesystem::path path;
-    typedef std::shared_ptr<shared_mutex> mutex_ptr;
 
     /// Construct the database.
-    spend_database(const path& filename, size_t buckets, size_t expansion,
-        mutex_ptr mutex=nullptr);
+    spend_database(path const& filename);
 
     /// Close the database (all threads must first be stopped).
     ~spend_database();
@@ -66,14 +65,13 @@ public:
     bool close();
 
     /// Get inpoint that spent the given outpoint.
-    chain::input_point get(const chain::output_point& outpoint) const;
+    chain::input_point get(chain::output_point const& outpoint) const;
 
     /// Store a spend in the database.
-    void store(const chain::output_point& outpoint,
-        const chain::input_point& spend);
+    void store(chain::output_point const& outpoint, chain::input_point const& spend);
 
     /// Delete outpoint spend item from database.
-    bool unlink(const chain::output_point& outpoint);
+    bool unlink(chain::output_point const& outpoint);
 
     /// Commit latest inserts.
     void synchronize();
@@ -82,19 +80,18 @@ public:
     bool flush();
 
     /// Return statistical info about the database.
-    spend_statinfo statinfo() const;
+//    spend_statinfo statinfo() const;
 
 private:
-    typedef record_hash_table<chain::point> record_map;
+    bool prepare_statements();
 
-    // The starting size of the hash table, used by create.
-    const size_t initial_map_file_size_;
+    bitprim::db_connection spend_db;
 
-    // Hash table used for looking up inpoint spends by outpoint.
-    memory_map lookup_file_;
-    record_hash_table_header lookup_header_;
-    record_manager lookup_manager_;
-    record_map lookup_map_;
+    // Prepared Statements
+    sqlite3_stmt* insert_spend_stmt_;
+    sqlite3_stmt* select_spend_stmt_;
+
+
 };
 
 } // namespace database

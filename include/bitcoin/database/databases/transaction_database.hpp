@@ -77,6 +77,8 @@ public:
     /// Flush the memory map to disk.
     bool flush();
 
+    std::vector<hash_digest> get_transactions_from_block(uint32_t height) const;
+
 private:
     bool prepare_statements();
 

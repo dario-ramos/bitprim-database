@@ -160,7 +160,7 @@ int main(int argc, char** argv)
     if (command == "initialize_new")
         store::create(filename);
 
-    spend_database db(filename, 1000, 50);
+    spend_database db(filename);
 
     if (command == "initialize_new")
     {
@@ -248,9 +248,9 @@ int main(int argc, char** argv)
         const auto result = db.open();
         BITCOIN_ASSERT(result);
 
-        auto info = db.statinfo();
-        std::cout << "Buckets: " << info.buckets << std::endl;
-        std::cout << "Total rows: " << info.rows << std::endl;
+//        auto info = db.statinfo();
+//        std::cout << "Buckets: " << info.buckets << std::endl;
+//        std::cout << "Total rows: " << info.rows << std::endl;
     }
     else
     {

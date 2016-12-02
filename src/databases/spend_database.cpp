@@ -31,125 +31,176 @@ namespace database {
 using namespace bc::chain;
 
 static constexpr auto value_size = std::tuple_size<point>::value;
-static BC_CONSTEXPR auto record_size = hash_table_record_size<point>(value_size);
+
+static constexpr char insert_spend_sql[] = "INSERT INTO spend (output_hash, output_index, input_hash, input_index) VALUES (?1, ?2, ?3, ?4);";
+static constexpr char select_spend_sql[] = "SELECT input_hash, input_index FROM spend WHERE output_hash = ?1 AND output_index = ?2;";
 
 // Spends use a hash table index, O(1).
-spend_database::spend_database(const path& filename, size_t buckets,
-    size_t expansion, mutex_ptr mutex)
-  : initial_map_file_size_(record_hash_table_header_size(buckets) + 
-        minimum_records_size),
-  
-    lookup_file_(filename, mutex, expansion),
-    lookup_header_(lookup_file_, buckets),
-    lookup_manager_(lookup_file_, record_hash_table_header_size(buckets),
-        record_size),
-    lookup_map_(lookup_header_, lookup_manager_)
-{
-}
+spend_database::spend_database(path const& filename)
+  : spend_db(filename.c_str())
+{}
 
-spend_database::~spend_database()
-{
+spend_database::~spend_database() {
     close();
 }
+
+
+bool spend_database::prepare_statements() {
+    std::cout << "bool spend_database::prepare_statements()\n";
+    int rc;
+
+    rc = sqlite3_prepare_v2(spend_db.ptr(), insert_spend_sql, -1, &insert_spend_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(spend_db.ptr()));
+
+
+    rc = sqlite3_prepare_v2(spend_db.ptr(), select_spend_sql, -1, &select_spend_stmt_, NULL);
+    std::cout << "rc: " << rc << '\n';
+//    std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+    printf("ERROR: %s\n", sqlite3_errmsg(spend_db.ptr()));
+
+
+    //TODO: Fer: check for errors
+
+    std::cout << "bool transaction_database::prepare_statements() -- END\n";
+
+    return true;
+
+}
+
 
 // Create.
 // ----------------------------------------------------------------------------
 
 // Initialize files and start.
-bool spend_database::create()
-{
-    // Resize and create require an opened file.
-    if (!lookup_file_.open())
-        return false;
+bool spend_database::create()  {
 
-    // This will throw if insufficient disk space.
-    lookup_file_.resize(initial_map_file_size_);
+    std::cout << "bool spend_database::create()\n";
 
-    if (!lookup_header_.create() ||
-        !lookup_manager_.create())
-        return false;
+    bool res = true;
 
-    // Should not call start after create, already started.
-    return
-        lookup_header_.start() &&
-        lookup_manager_.start();
+    spend_db.exec("CREATE TABLE spend( "
+                       "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                       "output_hash TEXT NOT NULL UNIQUE, "
+                       "output_index INTEGER NOT NULL, "
+                       "input_hash TEXT NOT NULL UNIQUE, "
+                       "input_index INTEGER NOT NULL);", [&res](int reslocal, std::string const& error_msg){
+
+        if (reslocal != SQLITE_OK) {
+            //TODO: Fer: Log errors
+            res = false;
+        }
+    });
+    if (!res) return res;
 }
 
 // Startup and shutdown.
 // ----------------------------------------------------------------------------
 
-bool spend_database::open()
-{
-    return
-        lookup_file_.open() &&
-        lookup_header_.start() &&
-        lookup_manager_.start();
+bool spend_database::open() {
+    return prepare_statements();
 }
 
-bool spend_database::close()
-{
-    return lookup_file_.close();
+bool spend_database::close() {
+    //TODO: Fer: Implement this. Is it necessary?
+    return true;
+
 }
 
 // Commit latest inserts.
-void spend_database::synchronize()
-{
-    lookup_manager_.sync();
+void spend_database::synchronize() {
+    //TODO: Fer: Implement this. Is it necessary?
 }
 
 // Flush the memory map to disk.
-bool spend_database::flush()
-{
-    return lookup_file_.flush();
+bool spend_database::flush() {
+    //TODO: Fer: Implement this. Is it necessary?
+    //TODO: Fer: Check if I have to use some kind of Flush on SQLite
+    return true;
 }
 
 // Queries.
 // ----------------------------------------------------------------------------
 
-input_point spend_database::get(const output_point& outpoint) const
-{
+input_point spend_database::get(output_point const& outpoint) const {
     //std::cout << "spend spend_database::get(const output_point& outpoint) const\n";
     input_point point;
-    const auto memory = lookup_map_.find(outpoint);
 
-    if (!memory)
-        return point;
+    sqlite3_reset(select_spend_stmt_);
+    sqlite3_bind_text(select_spend_stmt_, 1, reinterpret_cast<char const*>(outpoint.hash().data()), sizeof(hash_digest), SQLITE_STATIC);
+    sqlite3_bind_int(insert_spend_stmt_,  2, outpoint.index());
 
-    // The order of properties in this serialization was changed in v3.
-    // Previously it was { index, hash }, which was inconsistent with wire.
-    auto deserial = make_unsafe_deserializer(REMAP_ADDRESS(memory));
-    point.from_data(deserial);
+    // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 2 - " << std::this_thread::get_id() << "\n";
+
+    int rc = sqlite3_step(select_spend_stmt_);
+    if (rc == SQLITE_ROW) {
+
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const - 3 - " << std::this_thread::get_id() << "\n";
+
+
+        hash_digest input_hash;
+        memcpy(input_hash.data(), sqlite3_column_text(select_spend_stmt_, 0), sizeof(input_hash));
+        auto input_index = static_cast<uint32_t>(sqlite3_column_int(select_spend_stmt_, 1));
+
+        point.set_hash(input_hash);
+        point.set_index(input_index);
+
+
+    } else if (rc == SQLITE_DONE) {
+        // std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END no data found\n";
+        // std::cout << "hash: " << encode_hash(hash) << std::endl;
+    } else {
+        std::cout << "transaction_result transaction_database::get(hash_digest const& hash, size_t) const -- END with Error\n";
+        std::cout << "rc: " << rc << '\n';
+//        std::cout << "rc: " << (rc == SQLITE_OK) << '\n';
+        printf("ERROR in query: %s\n", sqlite3_errmsg(spend_db.ptr()));
+    }
+
     return point;
 }
 
-void spend_database::store(const chain::output_point& outpoint,
-    const chain::input_point& spend)
-{
+void spend_database::store(chain::output_point const& outpoint, chain::input_point const& spend) {
     //std::cout << "void spend_database::store(const chain::output_point& outpoint, const chain::input_point& spend)\n";
 
-    const auto write = [&spend](memory_ptr data)
-    {
-        auto serial = make_unsafe_serializer(REMAP_ADDRESS(data));
-        serial.write_bytes(spend.to_data());
-    };
+    sqlite3_reset(insert_spend_stmt_);
+    sqlite3_bind_text(insert_spend_stmt_, 1, reinterpret_cast<char const*>(outpoint.hash().data()), sizeof(hash_digest), SQLITE_STATIC);
+    sqlite3_bind_int(insert_spend_stmt_,  2, outpoint.index());
+    sqlite3_bind_text(insert_spend_stmt_, 3, reinterpret_cast<char const*>(spend.hash().data()), sizeof(hash_digest), SQLITE_STATIC);
+    sqlite3_bind_int(insert_spend_stmt_,  4, spend.index());
 
-    lookup_map_.store(outpoint, write);
+    auto rc = sqlite3_step(insert_spend_stmt_);
+
+    if (rc != SQLITE_DONE) {
+
+        std::cout << "insert_result insert_transaction(sqlite3* db, sqlite3_stmt* stmt,...) -- END with Error\n";
+        std::cout << "rc: " << rc << std::endl;
+
+//        std::cout << "hash: " << encode_hash(hash) << std::endl;
+//        std::cout << "version: " << version << std::endl;
+//        std::cout << "locktime: " << locktime << std::endl;
+//        std::cout << "block_height: " << block_height << std::endl;
+//        std::cout << "position: " << position << std::endl;
+
+        //TODO: hiding error code
+        printf("ERROR: %s\n", sqlite3_errmsg(spend_db.ptr()));
+        return; //false
+    }
+
+    return; //true
+    //sqlite3_last_insert_rowid(db)
 }
 
-bool spend_database::unlink(const output_point& outpoint)
-{
+bool spend_database::unlink(output_point const& outpoint) {
     //std::cout << "bool spend_database::unlink(const output_point& outpoint)\n";
-    return lookup_map_.unlink(outpoint);
+
+    //TODO: Fer
+    return true;
 }
 
-spend_statinfo spend_database::statinfo() const
-{
-    return
-    {
-        lookup_header_.size(),
-        lookup_manager_.count()
-    };
-}
+//spend_statinfo spend_database::statinfo() const  {
+//    return {0, 0};
+//}
 
 } // namespace database
 } // namespace libbitcoin
