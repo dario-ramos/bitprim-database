@@ -49,11 +49,11 @@ using namespace bc::chain;
 static constexpr char insert_block_sql[] = "INSERT INTO blocks (hash, height, version, prev_block, merkle, timestamp, bits, nonce) VALUES (?1, ?2, ?3, ?4, ?5 , ?6, ?7, ?8);";
 
 static constexpr char select_block_by_hash_sql[] = "SELECT id, hash, height, version, prev_block, merkle, timestamp, bits, nonce FROM blocks WHERE hash = ?1;";
-static constexpr char select_block_by_height_sql[] = "SELECT id, hash, height, version, prev_block, merkle, timestamp, bits, nonce FROM blocks WHERE id = ?1;";
+static constexpr char select_block_by_height_sql[] = "SELECT id, hash, height, version, prev_block, merkle, timestamp, bits, nonce FROM blocks WHERE height = ?1;";
 
-static constexpr char get_max_height_block_sql[] = "SELECT max(height) FROM blocks;";
+static constexpr char get_max_height_block_sql[] = "SELECT count(*), max(height) FROM blocks;";
 
-static constexpr char exists_block_by_height_sql[] = "SELECT 1 FROM blocks WHERE id= ?1;";
+static constexpr char exists_block_by_height_sql[] = "SELECT 1 FROM blocks WHERE height = ?1;";
 
 static constexpr char delete_block_sql[] = "DELETE FROM blocks WHERE height = ?1;";
 
@@ -74,7 +74,7 @@ block_database::block_database(transaction_database& transaction_db, path const&
   : transaction_db_(transaction_db)
   , block_db(filename.c_str())
 {
-    prepare_statements();
+    //prepare_statements();
 }
 
 block_database::~block_database() {
@@ -112,7 +112,7 @@ bool block_database::create()
 }
 
 bool block_database::prepare_statements() {
-    std::cout << "bool transaction_database::prepare_statements()\n";
+    std::cout << "bool block_database::prepare_statements()\n";
     int rc;
 
     //INSERT BLOCK STATEMENT
@@ -188,15 +188,35 @@ bool block_database::exists(size_t height) const {
   return rc == SQLITE_ROW;
 }
 
+
+/*
+inline
+void print_bytes_n(uint8_t const* f, size_t n) {
+    while (n != 0) {
+        printf("%02x", *f);
+        ++f;
+        --n;
+    }
+    printf("\n");
+}
+*/
+
+
 block_result block_database::get(size_t height) const {
+     
+  //std::cout << "block_result block_database::get(size_t height) - height: " << height << std::endl;
+    
   sqlite3_reset(select_block_by_height_stmt_);
   sqlite3_bind_int(select_block_by_height_stmt_, 1, height);
   return get(select_block_by_height_stmt_);
 }
 
 block_result block_database::get(const hash_digest& hash) const {
+    
+    //std::cout << "block_result block_database::get(const hash_digest& hash) - hash: " << encode_hash(hash) << std::endl;
+    
   sqlite3_reset(select_block_by_hash_stmt_);
-  sqlite3_bind_text(select_block_by_hash_stmt_, 4,  reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest) , SQLITE_STATIC);
+  sqlite3_bind_text(select_block_by_hash_stmt_, 1,  reinterpret_cast<char const*>(hash.data()), sizeof(hash_digest) , SQLITE_STATIC);
   return get(select_block_by_hash_stmt_);
 }
 
@@ -235,7 +255,7 @@ block_result block_database::get(sqlite3_stmt* stmt) const {
 
 
   } else if (rc == SQLITE_DONE) {
-    std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END no data found\n";
+    //std::cout << "block_result block_database::get(sqlite3_stmt* stmt) const -- END no data found\n";
     hash_digest hash;
     return block_result(false, uint32_t(), hash, chain::header(), std::vector<hash_digest>{});
   } else {
@@ -305,12 +325,36 @@ bool block_database::top(size_t& out_height) const {
   sqlite3_reset(get_max_height_block_stmt_);
   int rc = sqlite3_step(get_max_height_block_stmt_);
   
+  // if (rc == SQLITE_ROW) {
+  //   out_height = static_cast<uint32_t>(sqlite3_column_int(get_max_height_block_stmt_, 0));
+  //   return true;    
+  // }
+  // return false;
+
+  uint32_t count = 0;
+  uint32_t max = 0;
+  
   if (rc == SQLITE_ROW) {
-    out_height = static_cast<uint32_t>(sqlite3_column_int(get_max_height_block_stmt_, 0));
-    return true;    
+      //std::cout << "TOP - count: " << count << std::endl;
+      //std::cout << "TOP - max: " << count << std::endl;
+    count = static_cast<uint32_t>(sqlite3_column_int(get_max_height_block_stmt_, 0));
+    max = static_cast<uint32_t>(sqlite3_column_int(get_max_height_block_stmt_, 1));
+    //std::cout << "TOP - count: " << count << std::endl;
+    //std::cout << "TOP - max: " << count << std::endl;
+  } else {
+     std::cout << "bool block_database::top(size_t& out_height) -- ERROR" << std::endl;
+    //TODO: Fer: Log Error!
   }
   
+  // std::cout << "TOP - count: " << count << std::endl;
+
+  if (count == 0)
   return false;
+
+  // out_height = count - 1;
+  out_height = max;
+  return true;
+
 }
 
 } // namespace database
