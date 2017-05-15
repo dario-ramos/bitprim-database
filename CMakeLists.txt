@@ -168,6 +168,8 @@ add_library(bitprim-database ${MODE}
     src/databases/stealth_database.cpp
     src/databases/transaction_database.cpp
     src/databases/transaction_unconfirmed_database.cpp
+    src/databases/transaction_unconfirmed_database_circular.cpp
+    src/databases/transaction_unconfirmed_database_mem.cpp
 
     src/memory/accessor.cpp
     src/memory/allocator.cpp
@@ -494,6 +496,9 @@ set(_bitprim_headers
     bitcoin/database/databases/stealth_database.hpp
     bitcoin/database/databases/transaction_database.hpp
     bitcoin/database/databases/transaction_unconfirmed_database.hpp
+    bitcoin/database/databases/transaction_unconfirmed_database_circular.hpp
+    bitcoin/database/databases/transaction_unconfirmed_database_mem.hpp
+
     bitcoin/database/define.hpp
     bitcoin/database/impl/hash_table_header.ipp
     bitcoin/database/impl/record_hash_table.ipp

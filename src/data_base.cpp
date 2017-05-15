@@ -190,8 +190,11 @@ void data_base::start()
         settings_.cache_capacity, remap_mutex_);
 
     //TODO: BITPRIM: FER: transaction_table_buckets and file_growth_rate
-    transactions_unconfirmed_ = std::make_shared<transaction_unconfirmed_database>(transaction_unconfirmed_table,
-        settings_.transaction_unconfirmed_table_buckets, settings_.file_growth_rate, remap_mutex_);
+//    transactions_unconfirmed_ = std::make_shared<transaction_unconfirmed_database>(transaction_unconfirmed_table,
+//        settings_.transaction_unconfirmed_table_buckets, settings_.file_growth_rate, remap_mutex_);
+
+    //TODO: BITPRIM: FER: max_capacity in CFG file
+    transactions_unconfirmed_ = std::make_shared<transaction_unconfirmed_database_circular>(10000);
 
 
     if (use_indexes)
@@ -269,7 +272,7 @@ const transaction_database& data_base::transactions() const
     return *transactions_;
 }
 
-const transaction_unconfirmed_database& data_base::transactions_unconfirmed() const
+const transaction_unconfirmed_database_circular& data_base::transactions_unconfirmed() const
 {
     return *transactions_unconfirmed_;
 }
