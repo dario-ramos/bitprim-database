@@ -76,18 +76,25 @@ bool transaction_unconfirmed_database_circular::flush() const {
 // ----------------------------------------------------------------------------
 //transaction_result transaction_unconfirmed_database_circular::get(hash_digest const& hash) const
 boost::optional<chain::transaction> transaction_unconfirmed_database_circular::get(hash_digest const& hash) const  {
-    auto it = std::find(data_.begin(), data_.end(), [&hash](chain::transaction const& tx) {
-        return tx.hash() == hash;
+    boost::lock_guard<boost::mutex> guard(mutex_);
+
+    auto it = std::find_if(data_.begin(), data_.end(), [&hash](value_t const& x) {
+        return x.first.hash() == hash;
     });
 
     if (it == data_.end()) return boost::optional<chain::transaction>();
 
-    return boost::optional<chain::transaction>(*it);
+    return boost::optional<chain::transaction>(it->first);
 }
 
 void transaction_unconfirmed_database_circular::store(chain::transaction const& tx) {
 
-    auto const fee = fees(tx).second;
+
+    boost::lock_guard<boost::mutex> guard(mutex_);
+
+    std::cout << "TX to store hash: " << libbitcoin::encode_hash(tx.hash()) << "\n";
+//    auto const fee = fees(tx).second;
+    auto const fee = tx.fees(); //TODO: see how to get this value, correct!
     size_t const tx_weight = tx.to_data(true).size();
     auto const tx_fee_per_weight = double(fee) / tx_weight;
 
@@ -97,17 +104,17 @@ void transaction_unconfirmed_database_circular::store(chain::transaction const& 
 
     auto const f = std::lower_bound(data_.begin(), data_.end(), tx_fee_per_weight, cmp);
 
-    if (data.size() == data.capacity()) {
-        if (f != data.end()) {
-            if (f == data.end() - 1) { //is the last element
-                *f = x;
+    if (data_.size() == data_.capacity()) {
+        if (f != data_.end()) {
+            if (f == data_.end() - 1) { //is the last element
+                *f = std::make_pair(tx, tx_fee_per_weight);
             } else {
-                data.pop_back();
-                data.insert(f, x);
+                data_.pop_back();
+                data_.insert(f, std::make_pair(tx, tx_fee_per_weight));
             }
         }
     } else {
-        data.insert(f, x);
+        data_.insert(f, std::make_pair(tx, tx_fee_per_weight));
     }
 }
 
@@ -117,42 +124,51 @@ void transaction_unconfirmed_database_circular::store(chain::transaction const& 
 // bool transaction_unconfirmed_database_circular::unconfirm(const hash_digest& hash)
 
 bool transaction_unconfirmed_database_circular::unlink(hash_digest const& hash) {
-    return data_.erase(hash) == 1;
+    //return data_.erase(hash) == 1;
+
+    boost::lock_guard<boost::mutex> guard(mutex_);
+
+    auto const it = std::remove_if(data_.begin(), data_.end(), [&hash](value_t const& x){
+        return x.first.hash() == hash;
+    });
+    bool res = it != data_.end();
+    data_.erase(it, data_.end());
+    return res;
 }
 
-bool transaction_unconfirmed_database_circular::unlink_if_exists(hash_digest const& hash) {
-    return data_.erase(hash) == 1;
-}
+//bool transaction_unconfirmed_database_circular::unlink_if_exists(hash_digest const& hash) {
+//    return data_.erase(hash) == 1;
+//}
 
 
-std::pair<bool, uint64_t> transaction_unconfirmed_database_circular::total_input_value(chain::transaction const& tx) const{
-
-    uint64_t total = 0;
-
-    for (auto const& input : tx.inputs()) {
-        libbitcoin::chain::output out_output;
-        size_t out_height;
-        bool out_coinbase;
-        if (!get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
-//            std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
-//                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
-//                      << ".\nOutput index = " << input.previous_output().index() << "\n";
-            return std::make_pair(false, 0);
-        }
-        const bool missing = !out_output.is_valid();
-        total = ceiling_add(total, missing ? 0 : out_output.value());
-    }
-
-    return std::make_pair(true, total);
-}
-
-std::pair<bool, uint64_t> transaction_unconfirmed_database_circular::fees(chain::transaction const& tx) const {
-    auto input_value = total_input_value(tx);
-    if (input_value.first){
-        return std::make_pair(true, floor_subtract(input_value.second, tx.total_output_value()));
-    }
-    return std::make_pair(false, 0);
-}
+//std::pair<bool, uint64_t> transaction_unconfirmed_database_circular::total_input_value(chain::transaction const& tx) const{
+//
+//    uint64_t total = 0;
+//
+//    for (auto const& input : tx.inputs()) {
+//        libbitcoin::chain::output out_output;
+//        size_t out_height;
+//        bool out_coinbase;
+//        if (!get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
+////            std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
+////                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
+////                      << ".\nOutput index = " << input.previous_output().index() << "\n";
+//            return std::make_pair(false, 0);
+//        }
+//        const bool missing = !out_output.is_valid();
+//        total = ceiling_add(total, missing ? 0 : out_output.value());
+//    }
+//
+//    return std::make_pair(true, total);
+//}
+//
+//std::pair<bool, uint64_t> transaction_unconfirmed_database_circular::fees(chain::transaction const& tx) const {
+//    auto input_value = total_input_value(tx);
+//    if (input_value.first){
+//        return std::make_pair(true, floor_subtract(input_value.second, tx.total_output_value()));
+//    }
+//    return std::make_pair(false, 0);
+//}
 
 } // namespace database
 } // namespace libbitcoin

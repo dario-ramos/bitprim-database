@@ -76,7 +76,7 @@ public:
     const block_database& blocks() const;
 
     const transaction_database& transactions() const;
-    const transaction_unconfirmed_database& transactions_unconfirmed() const;
+    const transaction_unconfirmed_database_circular& transactions_unconfirmed() const;
 
     /// Invalid if indexes not initialized.
     const spend_database& spends() const;

@@ -457,7 +457,7 @@ bool data_base::push_transactions(const chain::block& block, size_t height,
     {
         const auto& tx = txs[position];
         transactions_->store(tx, height, position);
-        transactions_unconfirmed_->unlink_if_exists(tx.hash());
+        transactions_unconfirmed_->unlink(tx.hash());
 
         if (height < settings_.index_start_height)
             continue;

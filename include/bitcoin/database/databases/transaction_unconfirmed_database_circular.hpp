@@ -90,24 +90,25 @@ public:
     bool flush() const;
 
     bool unlink(hash_digest const& hash);
-    bool unlink_if_exists(hash_digest const& hash);
+//    bool unlink_if_exists(hash_digest const& hash);
 
     template <typename UnaryFunction>
     void for_each(UnaryFunction f) const {
         for (auto const & x : data_) {
-            //std::cout << "Key:[" << n.first << "] Value:[" << n.second << "]\n";
-            if (!f(n.second)) {
+            //std::cout << "Key:[" << x.first << "] Value:[" << x.second << "]\n";
+            if (!f(x.first)) {
                 return;
             }
         }
     }
 
 private:
-    std::pair<bool, uint64_t> total_input_value(chain::transaction const& tx) const;
-    std::pair<bool, uint64_t> fees(chain::transaction const& tx) const;
+//    std::pair<bool, uint64_t> total_input_value(chain::transaction const& tx) const;
+//    std::pair<bool, uint64_t> fees(chain::transaction const& tx) const;
 
     using value_t = std::pair<chain::transaction, double>;
     std::vector<value_t> data_;
+    mutable boost::mutex mutex_;
 };
 
 } // namespace database
