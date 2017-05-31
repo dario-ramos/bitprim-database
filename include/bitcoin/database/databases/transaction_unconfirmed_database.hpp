@@ -64,8 +64,8 @@ public:
     bool close();
 
     /// Fetch transaction by its hash, at or below the specified block height.
-    transaction_result get(const hash_digest& hash) const;
-
+//    transaction_result get(const hash_digest& hash) const;
+    transaction_result get(const hash_digest& hash, size_t fork_height, bool require_confirmed) const;
     /// Get the output at the specified index within the transaction.
     // bool get_output(chain::output& out_output, size_t& out_height,
     //     bool& out_coinbase, const chain::output_point& point,
@@ -116,7 +116,8 @@ public:
 private:
     typedef slab_hash_table<hash_digest> slab_map;
 
-    memory_ptr find(const hash_digest& hash) const;
+    memory_ptr find(const hash_digest& hash,
+    size_t fork_height, bool require_confirmed) const;
 
     // The starting size of the hash table, used by create.
     const size_t initial_map_file_size_;
@@ -126,6 +127,8 @@ private:
     slab_hash_table_header lookup_header_;
     slab_manager lookup_manager_;
     slab_map lookup_map_;
+
+    mutable shared_mutex metadata_mutex_;
 };
 
 } // namespace database

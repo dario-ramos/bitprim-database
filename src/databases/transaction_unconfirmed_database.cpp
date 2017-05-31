@@ -107,8 +107,23 @@ bool transaction_unconfirmed_database::flush() const
 
 // Queries.
 // ----------------------------------------------------------------------------
+//OLD MERGE MAY 2017
+//memory_ptr transaction_unconfirmed_database::find(const hash_digest& hash) const
+//{
+//    //*************************************************************************
+//    // CONSENSUS: This simplified implementation does not allow the possibility
+//    // of a matching tx hash above the fork height or the existence of both
+//    // unconfirmed and confirmed transactions with the same hash. This is an
+//    // assumption of the impossibility of hash collisions, which is incorrect
+//    // but consistent with the current satoshi implementation. This method
+//    // encapsulates that assumption which can therefore be fixed in one place.
+//    //*************************************************************************
+//    auto slab = lookup_map_.find(hash);
+//    return slab;
+//}
 
-memory_ptr transaction_unconfirmed_database::find(const hash_digest& hash) const
+memory_ptr transaction_unconfirmed_database::find(const hash_digest& hash,
+                                      size_t fork_height, bool require_confirmed) const
 {
     //*************************************************************************
     // CONSENSUS: This simplified implementation does not allow the possibility
@@ -118,19 +133,42 @@ memory_ptr transaction_unconfirmed_database::find(const hash_digest& hash) const
     // but consistent with the current satoshi implementation. This method
     // encapsulates that assumption which can therefore be fixed in one place.
     //*************************************************************************
-    auto slab = lookup_map_.find(hash);
+    auto slab = lookup_map_.find(hash /*, fork_height, require_confirmed*/);
     return slab;
 }
 
-transaction_result transaction_unconfirmed_database::get(const hash_digest& hash) const
+
+//OLD MERGE MAY 2017
+//transaction_result transaction_unconfirmed_database::get(const hash_digest& hash,
+//    size_t fork_height, bool require_confirmed) const
+//{
+//    // Limit search to confirmed transactions at or below the fork height.
+//    // Caller should set fork height to max_size_t for unconfirmed search.
+//    const auto slab = find(hash);
+//
+//    // Returns an invalid result if not found.
+//    return transaction_result(slab, hash);
+//}
+
+//TODO: check if transaction_uncofirmed_get was called from mining
+transaction_result transaction_unconfirmed_database::get(const hash_digest& hash,
+     size_t fork_height, bool require_confirmed) const
 {
     // Limit search to confirmed transactions at or below the fork height.
     // Caller should set fork height to max_size_t for unconfirmed search.
-    const auto slab = find(hash);
+    const auto slab = find(hash, fork_height, require_confirmed);
+    if (slab) {
+        metadata_mutex_.lock_shared();
+        auto deserial = make_unsafe_deserializer(REMAP_ADDRESS(slab));
+        const auto height = deserial.read_4_bytes_little_endian();
+        const auto position = deserial.read_4_bytes_little_endian();
+        metadata_mutex_.unlock_shared();
+        return transaction_result(slab, hash, fork_height, position);
+    }
 
-    // Returns an invalid result if not found.
-    return transaction_result(slab, hash);
+    return {};
 }
+
 
 void transaction_unconfirmed_database::store(const chain::transaction& tx)
 {

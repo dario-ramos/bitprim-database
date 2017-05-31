@@ -133,10 +133,17 @@ AS_CASE([${with_tests}], [yes],
      AC_MSG_NOTICE([boost_unit_test_framework_LIBS : ${boost_unit_test_framework_LIBS}])],
     [AC_SUBST([boost_unit_test_framework_LIBS], [])])
 
+<<<<<<< HEAD
 # Require bitcoin of at least version 3.0.0 and output ${bitcoin_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
 PKG_CHECK_MODULES([bitcoin], [libbitcoin >= 3.0.0])
 AC_SUBST([bitcoin_PKG], ['libbitcoin >= 3.0.0'])
+=======
+# Require bitcoin of at least version 3.2.0 and output ${bitcoin_CPPFLAGS/LIBS/PKG}.
+#------------------------------------------------------------------------------
+PKG_CHECK_MODULES([bitcoin], [libbitcoin >= 3.2.0])
+AC_SUBST([bitcoin_PKG], ['libbitcoin >= 3.2.0'])
+>>>>>>> v3.2.0
 AC_SUBST([bitcoin_CPPFLAGS], [${bitcoin_CFLAGS}])
 AC_MSG_NOTICE([bitcoin_CPPFLAGS : ${bitcoin_CPPFLAGS}])
 AC_MSG_NOTICE([bitcoin_LIBS : ${bitcoin_LIBS}])

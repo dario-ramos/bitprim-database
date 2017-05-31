@@ -237,6 +237,12 @@ bool data_base::flush() const
             history_->flush() &&
             stealth_->flush();
 
+    // Just for the log.
+    code ec(flushed ? error::success : error::operation_failed);
+
+    LOG_DEBUG(LOG_DATABASE)
+        << "Write flushed to disk: " << ec.message();
+
     return flushed;
 }
 
@@ -500,7 +506,7 @@ void data_base::push_inputs(const hash_digest& tx_hash, size_t height,
 
         spends_->store(input.previous_output(), point);
 
-        // Try to extract an address.
+        // TODO: use a vector result to extract sign_multisig.
         const auto address = input.address();
         if (!address)
             continue;
@@ -525,7 +531,7 @@ void data_base::push_outputs(const hash_digest& tx_hash, size_t height,
     {
         const auto& output = outputs[index];
 
-        // Try to extract an address.
+        // TODO: use a vector result to extract pay_multisig.
         const auto address = output.address();
         if (!address)
             continue;
@@ -602,14 +608,15 @@ bool data_base::pop(block& out_block)
 
     for (size_t position = 0; position < count; ++position)
     {
-        const auto tx_hash = block.transaction_hash(position);
+        auto tx_hash = block.transaction_hash(position);
         const auto tx = transactions_->get(tx_hash, height, true);
 
         if (!tx || (tx.height() != height) || (tx.position() != position))
             return false;
 
         // Deserialize transaction and move it to the block.
-        transactions.emplace_back(tx.transaction());
+        // The tx move/copy constructors do not currently transfer cache.
+        transactions.emplace_back(tx.transaction(), std::move(tx_hash));
     }
 
     // Loop txs backwards, the reverse of how they were added.
@@ -756,6 +763,8 @@ void data_base::do_push(block_const_ptr block, size_t height,
 
     const auto threads = dispatch.size();
     const auto buckets = std::min(threads, block->transactions().size());
+    BITCOIN_ASSERT(buckets != 0);
+
     const auto join_handler = bc::synchronize(std::move(block_complete),
         buckets, NAME "_do_push");
 
